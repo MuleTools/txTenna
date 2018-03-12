@@ -31,7 +31,7 @@ dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
     compile 'org.bouncycastle:bcprov-jdk15on:1.55'
     compile 'commons-io:commons-io:2.5'
-    compile 'org.json:json:20140107'
+    compile 'com.google.code.gson:gson:2.8.2'
     compile 'com.google.guava:guava:20.0'
 
 }
