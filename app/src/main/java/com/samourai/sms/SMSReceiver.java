@@ -5,17 +5,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.v4.content.LocalBroadcastManager;
 import android.telephony.SmsMessage;
 import android.util.Log;
 
-import com.samourai.ponydirect.TxFactory;
-
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -50,7 +43,6 @@ public class SMSReceiver extends BroadcastReceiver {
                     messages[i] = SmsMessage.createFromPdu((byte[])pdusObj[i]);
                 }
 
-                JSONObject obj = null;
                 String incomingTelNo = null;
                 int id = -1;
                 for(SmsMessage currentMessage : messages)	{
