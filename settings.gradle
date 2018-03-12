@@ -1,1 +1,1 @@
-include ':app'
+include ':app', ':gotenna-public-sdk'
