@@ -8,5 +8,7 @@
     <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
     <string name="close">Close</string>
+    <string name="gotenna_mesh">GoTenna Mesh</string>
+    <string name="sms_broadcast">SMS Broadcast</string>
 
 </resources>
