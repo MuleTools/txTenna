@@ -25,6 +25,14 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".NetworkingActivity"
+            android:label="@string/networking"
+            android:parentActivityName=".MainActivity" />
+        <activity
+            android:name=".BroadcastLogActivity"
+            android:label="Broadcast log"
+            android:parentActivityName=".MainActivity" />
     </application>
 
 </manifest>

@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">txTenna</string>
+    <string name="app_name">TxTenna</string>
     <string name="action_settings">Settings</string>
 
     <string name="permission_alert_dialog_title">Requesting SMS permission</string>
@@ -8,5 +8,8 @@
     <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
     <string name="close">Close</string>
+    <string name="gotenna_mesh">GoTenna Mesh</string>
+    <string name="sms_broadcast">SMS Broadcast</string>
+    <string name="networking">Networking</string>
 
 </resources>
