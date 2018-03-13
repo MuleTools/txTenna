@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">txTenna</string>
+    <string name="app_name">TxTenna</string>
     <string name="action_settings">Settings</string>
 
     <string name="permission_alert_dialog_title">Requesting SMS permission</string>
