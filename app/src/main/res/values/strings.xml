@@ -10,5 +10,6 @@
     <string name="close">Close</string>
     <string name="gotenna_mesh">GoTenna Mesh</string>
     <string name="sms_broadcast">SMS Broadcast</string>
+    <string name="networking">Networking</string>
 
 </resources>
