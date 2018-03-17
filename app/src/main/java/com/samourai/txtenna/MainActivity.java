@@ -83,6 +83,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    public void onBackPressed() {
+        if (bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED) {
+            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+        } else {
+            super.onBackPressed();
+        }
+    }
+
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
