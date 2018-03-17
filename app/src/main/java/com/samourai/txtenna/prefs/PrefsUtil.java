@@ -7,6 +7,7 @@ import android.preference.PreferenceManager;
 public class PrefsUtil {
 
     public static final String SMS_RELAY = "smsRelay";
+    public static final String PUSHTX = "pushTx";
     public static final String USE_MAINNET = "mainNet";
     public static final String MESSAGE_IDX = "msgIdx";
 

@@ -1,6 +1,8 @@
 <resources>
+    <string name="version_name">0.00</string>
     <string name="app_name">TxTenna</string>
     <string name="action_settings">Settings</string>
+    <string name="about_us">About us</string>
 
     <string name="permission_alert_dialog_title">Requesting SMS permission</string>
     <string name="permission_dialog_message">The app will now request your permission to send and read SMS related services.</string>
@@ -11,5 +13,18 @@
     <string name="gotenna_mesh">GoTenna Mesh</string>
     <string name="sms_broadcast">SMS Broadcast</string>
     <string name="networking">Networking</string>
+
+    <string name="options_telno">SMS relay</string>
+    <string name="options_telno2">phone number of SMS relay</string>
+    <string name="options_pushtx">pushTx relay</string>
+    <string name="options_pushtx2">URL of pushTx endpoint</string>
+    <string name="options_mainnet">MainNet</string>
+    <string name="options_mainnet2">Use MainNet for broadcast (uncheck to use TestNet)</string>
+    <string name="use_intl_format">Use international dialing format. Ex.:\'+447385555555\'</string>
+    <string name="default_relay">+447490741539</string>
+    <string name="default_pushtx">https://api.samouraiwallet.com/v2/pushTx</string>
+    <string name="invalid_url">Invalid URL</string>
+
+    <string name="muletools">MuleTools</string>
 
 </resources>
