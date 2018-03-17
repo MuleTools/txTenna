@@ -31,11 +31,11 @@
             android:parentActivityName=".MainActivity" />
         <activity
             android:name=".BroadcastLogActivity"
-            android:label="Broadcast log"
+            android:label="@string/broadcast_log"
             android:parentActivityName=".MainActivity" />
         <activity
             android:name=".SettingsActivity"
-            android:label="Settings"
+            android:label="@string/settings"
             android:parentActivityName=".MainActivity" />
     </application>
 

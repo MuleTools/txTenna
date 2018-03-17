@@ -13,6 +13,8 @@
     <string name="gotenna_mesh">GoTenna Mesh</string>
     <string name="sms_broadcast">SMS Broadcast</string>
     <string name="networking">Networking</string>
+    <string name="broadcast_log">Broadcast Log</string>
+    <string name="settings">Settings</string>
 
     <string name="options_telno">SMS relay</string>
     <string name="options_telno2">phone number of SMS relay</string>
