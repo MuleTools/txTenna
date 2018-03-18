@@ -3,6 +3,7 @@ package com.samourai.txtenna;
 import android.Manifest;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -30,10 +31,10 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        fab = (FloatingActionButton) findViewById(R.id.fab);
-        BottomSheetMenu = (LinearLayout) findViewById(R.id.fab_bottom_sheet);
+        fab = findViewById(R.id.fab);
+        BottomSheetMenu = findViewById(R.id.fab_bottom_sheet);
         bottomSheetBehavior = BottomSheetBehavior.from(BottomSheetMenu);
         bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
         bottomSheetBehavior.setBottomSheetCallback(bottomSheetCallback);
@@ -100,6 +101,7 @@ public class MainActivity extends AppCompatActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            startActivity(new Intent(this, SettingsActivity.class));
             return true;
         }
 
