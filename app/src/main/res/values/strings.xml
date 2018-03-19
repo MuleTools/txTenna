@@ -28,5 +28,7 @@
     <string name="invalid_url">Invalid URL</string>
 
     <string name="muletools">MuleTools</string>
+    <string name="menu_scan_qr">Scan QR</string>
+    <string name="menu_network">Network</string>
 
 </resources>
