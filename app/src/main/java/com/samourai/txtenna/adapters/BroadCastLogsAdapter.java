@@ -89,7 +89,7 @@ public class BroadCastLogsAdapter extends RecyclerView.Adapter<BroadCastLogsAdap
             DrawableCompat.setTint(mWrappedDrawable, Color.WHITE);
             DrawableCompat.setTintMode(mWrappedDrawable, PorterDuff.Mode.SRC_ATOP);
             holder.icon.setImageDrawable(mWrappedDrawable);
-            holder.icon.setBackground(mContext.getResources().getDrawable(R.drawable.circle));
+            holder.icon.setBackground(mContext.getResources().getDrawable(R.drawable.circle_green));
         }
         if (position == 1) {
             holder.setExpandable();
@@ -106,7 +106,7 @@ public class BroadCastLogsAdapter extends RecyclerView.Adapter<BroadCastLogsAdap
             DrawableCompat.setTint(mWrappedDrawable, Color.WHITE);
             DrawableCompat.setTintMode(mWrappedDrawable, PorterDuff.Mode.SRC_ATOP);
             holder.icon.setImageDrawable(mWrappedDrawable);
-            holder.icon.setBackground(mContext.getResources().getDrawable(R.drawable.circle));
+            holder.icon.setBackground(mContext.getResources().getDrawable(R.drawable.circle_green));
             holder.setExpandable();
             holder.setExapanded(View.VISIBLE);
 
