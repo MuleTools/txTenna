@@ -14,12 +14,15 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.samourai.txtenna.prefs.PrefsUtil;
+
 public class NetworkingActivity extends AppCompatActivity {
 
     Group ConstraintGroup;
     CardView mesh_card;
     ImageView status_img_mesh;
     TextView mesh_card_detail_title;
+    TextView tvSMSRelay = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,6 +38,8 @@ public class NetworkingActivity extends AppCompatActivity {
                 changeState();
             }
         });
+        tvSMSRelay = findViewById(R.id.smsRelay);
+        tvSMSRelay.setText(PrefsUtil.getInstance(NetworkingActivity.this).getValue(PrefsUtil.SMS_RELAY, getString(R.string.default_relay)));
     }
     private void changeState(){
         TransitionManager.beginDelayedTransition((ViewGroup) ConstraintGroup.getParent(), new ChangeBounds());

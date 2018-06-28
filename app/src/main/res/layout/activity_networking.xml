@@ -220,7 +220,7 @@
                 app:layout_constraintGuide_begin="50dp" />
 
             <TextView
-                android:id="@+id/textView2"
+                android:id="@+id/smsRelay"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
