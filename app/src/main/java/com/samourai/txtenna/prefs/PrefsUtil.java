@@ -9,6 +9,7 @@ public class PrefsUtil {
     public static final String SMS_RELAY = "smsRelay";
     public static final String PUSHTX = "pushTx";
     public static final String USE_MAINNET = "mainNet";
+    public static final String USE_Z85 = "z85";
     public static final String MESSAGE_IDX = "msgIdx";
 
     private static Context context = null;

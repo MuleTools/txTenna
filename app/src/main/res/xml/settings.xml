@@ -22,6 +22,13 @@
         android:key="mainNet"
         />
 
+    <CheckBoxPreference
+        android:title="@string/options_z85"
+        android:summary="@string/options_z85_2"
+        android:defaultValue="false"
+        android:key="z85"
+        />
+
     <Preference
         android:title="@string/about_us"
         android:summary="@string/about_us"

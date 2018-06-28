@@ -45,7 +45,7 @@ public class SettingsActivity extends PreferenceActivity {
             }
         });
 
-        final EditTextPreference pushTxPref = (EditTextPreference) findPreference("smsRelay");
+        final EditTextPreference pushTxPref = (EditTextPreference) findPreference("pushTx");
         pushTxPref.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
             public boolean onPreferenceChange(Preference preference, Object newValue) {
 
@@ -70,6 +70,21 @@ public class SettingsActivity extends PreferenceActivity {
                 }
                 else {
                     PrefsUtil.getInstance(SettingsActivity.this).setValue(PrefsUtil.USE_MAINNET, true);
+                }
+
+                return true;
+            }
+        });
+
+        final CheckBoxPreference cbZ85 = (CheckBoxPreference) findPreference("z85");
+        cbZ85.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+            public boolean onPreferenceChange(Preference preference, Object newValue) {
+
+                if (cbZ85.isChecked()) {
+                    PrefsUtil.getInstance(SettingsActivity.this).setValue(PrefsUtil.USE_Z85, false);
+                }
+                else {
+                    PrefsUtil.getInstance(SettingsActivity.this).setValue(PrefsUtil.USE_Z85, true);
                 }
 
                 return true;

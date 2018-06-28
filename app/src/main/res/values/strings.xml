@@ -22,6 +22,8 @@
     <string name="options_pushtx2">URL of pushTx endpoint</string>
     <string name="options_mainnet">MainNet</string>
     <string name="options_mainnet2">Use MainNet for broadcast (uncheck to use TestNet)</string>
+    <string name="options_z85">Use Z85 encoding</string>
+    <string name="options_z85_2">Save space by encoding transaction bytes in Z85</string>
     <string name="use_intl_format">Use international dialing format. Ex.:\'+447385555555\'</string>
     <string name="default_relay">+447490741539</string>
     <string name="default_pushtx">https://api.samouraiwallet.com/v2/pushTx</string>
@@ -30,5 +32,19 @@
     <string name="muletools">MuleTools</string>
     <string name="menu_scan_qr">Scan QR</string>
     <string name="menu_network">Network</string>
+
+    <string name="scan">Scan</string>
+    <string name="tx_hex">Transaction hex</string>
+    <string name="enter_tx_hex">Enter transaction in hex format</string>
+
+    <string name="invalid_tx">Invalid transaction</string>
+    <string name="txTenna_selection">Coming soon...</string>
+
+    <string name="sent_sms">sent SMS</string>
+
+    <string name="sending">sending</string>
+    <string name="broadcasted">broadcasted</string>
+    <string name="to">to</string>
+    <string name="broadcast">Broadcast transaction</string>
 
 </resources>

@@ -1,30 +1,94 @@
 package com.samourai.txtenna;
 
 import android.Manifest;
+import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomSheetBehavior;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.Editable;
+import android.text.InputType;
+import android.text.TextWatcher;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import com.dm.zbar.android.scanner.ZBarConstants;
+import com.dm.zbar.android.scanner.ZBarScannerActivity;
+import com.samourai.sms.SMSReceiver;
+import com.samourai.sms.SMSSender;
+import com.samourai.txtenna.payload.PayloadFactory;
+import com.samourai.txtenna.prefs.PrefsUtil;
+import com.yanzhenjie.zbar.Symbol;
+
+import org.bitcoinj.core.Transaction;
+import org.bitcoinj.core.VerificationException;
+import org.bitcoinj.params.MainNetParams;
+import org.bitcoinj.params.TestNet3Params;
+import org.bouncycastle.util.encoders.Hex;
+
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
+    private final static int SCAN_HEX_TX = 2011;
+
     private static final int SMS_PERMISSION_CODE = 0;
+
     private LinearLayout BottomSheetMenu;
+    private LinearLayout txTennaSelection;
+    private LinearLayout smsSelection;
     private BottomSheetBehavior bottomSheetBehavior;
     private FloatingActionButton fab;
+
+    private IntentFilter isFilter = null;
+    private BroadcastReceiver isReceiver = null;
+
+    public static final String ACTION_INTENT = "com.samourai.ponydirect.LOG";
+    protected BroadcastReceiver receiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(final Context context, Intent intent) {
+
+            /*
+            if(ACTION_INTENT.equals(intent.getAction()) && tvLog != null) {
+
+                String strText = intent.getStringExtra("msg");
+                String strLog = tvLog.getText().toString();
+
+                if(strLog.length() > 0) {
+                    strLog += "\n";
+                }
+
+                strLog += strText;
+
+                tvLog.setText(strLog);
+
+            }
+            */
+
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,10 +112,77 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        txTennaSelection = BottomSheetMenu.findViewById(R.id.txTenna);
+        txTennaSelection.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Toast.makeText(MainActivity.this, R.string.txTenna_selection, Toast.LENGTH_SHORT).show();
+                bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+            }
+        });
+
+        smsSelection = BottomSheetMenu.findViewById(R.id.sms);
+        smsSelection.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+                doGetHex();
+            }
+        });
+
         if (!hasReadSmsPermission() || !hasSendSmsPermission()) {
             showRequestPermissionsInfoAlertDialog();
         }
 
+        IntentFilter filter = new IntentFilter(ACTION_INTENT);
+        LocalBroadcastManager.getInstance(MainActivity.this).registerReceiver(receiver, filter);
+
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        if(isReceiver == null)    {
+            isFilter = new IntentFilter();
+            isFilter.addAction("android.provider.Telephony.SMS_RECEIVED");
+            isFilter.setPriority(2147483647);
+            isReceiver = new SMSReceiver();
+            MainActivity.this.registerReceiver(isReceiver, isFilter);
+        }
+
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        try {
+            if(isReceiver != null)    {
+                MainActivity.this.unregisterReceiver(isReceiver);
+            }
+        }
+        catch(IllegalArgumentException iae) {
+            ;
+        }
+
+    }
+
+    @Override
+    protected void onDestroy() {
+
+        LocalBroadcastManager.getInstance(MainActivity.this).unregisterReceiver(receiver);
+
+        try {
+            if(isReceiver != null)    {
+                MainActivity.this.unregisterReceiver(isReceiver);
+            }
+        }
+        catch(IllegalArgumentException iae) {
+            ;
+        }
+
+        super.onDestroy();
     }
 
     /**
@@ -115,6 +246,92 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+
+        if(resultCode == Activity.RESULT_OK && requestCode == SCAN_HEX_TX)	{
+
+            if(data != null && data.getStringExtra(ZBarConstants.SCAN_RESULT) != null)	{
+
+                final String strResult = data.getStringExtra(ZBarConstants.SCAN_RESULT).trim();
+
+//                doSendHex(strResult);
+
+            }
+        }
+        else {
+            ;
+        }
+
+    }
+
+    private void doGetHex()    {
+
+        final EditText edHexTx = new EditText(MainActivity.this);
+        edHexTx.setSingleLine(false);
+        edHexTx.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
+        edHexTx.setLines(10);
+        edHexTx.setHint(R.string.tx_hex);
+        edHexTx.setGravity(Gravity.START);
+        TextWatcher textWatcher = new TextWatcher() {
+
+            public void afterTextChanged(Editable s) {
+                edHexTx.setSelection(0);
+            }
+
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                ;
+            }
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                ;
+            }
+        };
+        edHexTx.addTextChangedListener(textWatcher);
+
+        AlertDialog.Builder dlg = new AlertDialog.Builder(MainActivity.this)
+                .setTitle(R.string.app_name)
+                .setView(edHexTx)
+                .setMessage(R.string.enter_tx_hex)
+                .setCancelable(true)
+                .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int whichButton) {
+
+                        dialog.dismiss();
+
+                        final String strHexTx = edHexTx.getText().toString().trim();
+
+                        Log.d("MainActivity", "hex:" + strHexTx);
+
+                        Transaction tx = new Transaction(PrefsUtil.getInstance(MainActivity.this).getValue(PrefsUtil.USE_MAINNET, true) ? MainNetParams.get() : TestNet3Params.get(), Hex.decode(strHexTx));
+                        Log.d("MainActivity", "hash:" + tx.getHashAsString());
+                        try {
+                            tx.verify();
+                            doSendHex(strHexTx, false);
+                        }
+                        catch(VerificationException ve) {
+                            Toast.makeText(MainActivity.this, R.string.invalid_tx, Toast.LENGTH_SHORT).show();
+                        }
+
+                    }
+                }).setNegativeButton(R.string.scan, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int whichButton) {
+
+                        dialog.dismiss();
+
+                        doScanHexTx();
+                    }
+                });
+
+        dlg.show();
+
+    }
+
+    private void doScanHexTx()   {
+        Intent intent = new Intent(MainActivity.this, ZBarScannerActivity.class);
+        intent.putExtra(ZBarConstants.SCAN_MODES, new int[]{ Symbol.QRCODE } );
+        startActivityForResult(intent, SCAN_HEX_TX);
+    }
+
     private void showRequestPermissionsInfoAlertDialog() {
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -155,6 +372,94 @@ public class MainActivity extends AppCompatActivity {
         }
 
         ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.SEND_SMS, Manifest.permission.READ_SMS}, SMS_PERMISSION_CODE);
+
+    }
+
+    private void doSendHex(final String hexTx, final boolean isGoTenna)    {
+
+        if(!hexTx.matches("^[A-Fa-f0-9]+$")) {
+            return;
+        }
+
+        final Transaction tx = new Transaction(MainNetParams.get(), Hex.decode(hexTx));
+        final String msg = MainActivity.this.getString(R.string.broadcast) + ":" + tx.getHashAsString() + " " + getText(R.string.to) + " " + PrefsUtil.getInstance(MainActivity.this).getValue(PrefsUtil.SMS_RELAY, MainActivity.this.getText(R.string.default_relay).toString()) + " ?";
+
+        final TextView tvHexTx = new TextView(MainActivity.this);
+        tvHexTx.setSingleLine(false);
+        tvHexTx.setLines(10);
+        tvHexTx.setGravity(Gravity.START);
+        tvHexTx.setText(hexTx);
+
+        AlertDialog.Builder dlg = new AlertDialog.Builder(MainActivity.this)
+                .setTitle(R.string.app_name)
+                .setMessage(msg)
+                .setCancelable(true)
+                .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int whichButton) {
+
+                        dialog.dismiss();
+
+                        List<String> payload  = PayloadFactory.getInstance(MainActivity.this).toJSON(hexTx, isGoTenna);
+
+                        sendPayload(payload);
+
+                    }
+
+                }).setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int whichButton) {
+
+                        dialog.dismiss();
+
+                    }
+                });
+
+        dlg.show();
+
+    }
+
+    public void sendPayload(final List<String> payload)   {
+
+        final Handler handler = new Handler();
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+
+                Looper.prepare();
+
+                for(int i = 0; i < payload.size(); i++)   {
+
+                    final String s = payload.get(i);
+
+                    final int ii = i + 1;
+
+                    SMSSender.getInstance(MainActivity.this).send(s, PrefsUtil.getInstance(MainActivity.this).getValue(PrefsUtil.SMS_RELAY, MainActivity.this.getString(R.string.default_relay)));
+
+                    try {
+                        handler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                /*
+                                Intent intent = new Intent("com.samourai.ponydirect.LOG");
+                                intent.putExtra("msg", MainActivity.this.getText(R.string.sent_sms) + ", " + ii + "/" + payload.size() + ":" + s);
+                                LocalBroadcastManager.getInstance(MainActivity.this).sendBroadcast(intent);
+                                */
+                                Log.d("MainActivity", "sent:" + s);
+                            }
+                        });
+
+                        Thread.sleep(5000L);
+                    }
+                    catch(Exception e) {
+                        ;
+                    }
+
+                }
+
+                Looper.loop();
+
+            }
+        }).start();
 
     }
 
