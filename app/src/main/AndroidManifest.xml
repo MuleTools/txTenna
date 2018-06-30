@@ -45,6 +45,13 @@
             android:configChanges="keyboardHidden|orientation|screenSize"
             />
 
+        <receiver android:name="com.samourai.sms.SMSReceiver" android:enabled="true" android:exported="true">
+            <intent-filter android:priority="999">
+                <action android:name="android.provider.Telephony.SMS_RECEIVED" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </receiver>
+
     </application>
 
 </manifest>

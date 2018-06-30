@@ -73,7 +73,7 @@ public class SMSReceiver extends BroadcastReceiver {
                     PayloadFactory.Seg0 seg0 = null;
                     PayloadFactory.SegN segn = null;
                     Gson gson = new Gson();
-                    if(msg.contains("\"s\"="))    {
+                    if(msg.contains("\"s\":"))    {
                         seg0 = gson.fromJson(msg, PayloadFactory.Seg0.class);
                         c = 0;
                         i = seg0.i;
@@ -143,7 +143,7 @@ public class SMSReceiver extends BroadcastReceiver {
         for(String key : segments.keySet())   {
 
             String msg = segments.get(key);
-            if(msg.contains("\"s\"="))    {
+            if(msg.contains("\"s\":"))    {
                 seg0 = gson.fromJson(msg, PayloadFactory.Seg0.class);
                 segs = seg0.s;
                 hash = seg0.h;
@@ -165,7 +165,7 @@ public class SMSReceiver extends BroadcastReceiver {
 
                 String msg = segments.get(key);
 
-                if(msg.contains("\"s\"="))    {
+                if(msg.contains("\"s\":"))    {
                     seg0 = gson.fromJson(msg, PayloadFactory.Seg0.class);
                     c = 0;
                 }
