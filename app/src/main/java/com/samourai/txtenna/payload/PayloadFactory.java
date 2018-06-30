@@ -3,21 +3,27 @@ package com.samourai.txtenna.payload;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Handler;
+import android.os.Looper;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import com.google.gson.Gson;
 
 import com.google.gson.GsonBuilder;
+import com.samourai.txtenna.R;
 import com.samourai.txtenna.Z85;
 import com.samourai.txtenna.prefs.PrefsUtil;
 
+import org.apache.commons.io.IOUtils;
 import org.bitcoinj.core.Transaction;
 import org.bitcoinj.params.MainNetParams;
 import org.bitcoinj.params.TestNet3Params;
 
 import org.bouncycastle.util.encoders.Hex;
 
+import java.io.DataOutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -244,6 +250,102 @@ public class PayloadFactory {
             return txHex;
         }
 
+    }
+
+    public void broadcastPayload(final List<String> payload, final boolean useMainNet)   {
+
+        final String txHex = fromJSON(payload);
+        Log.d("PayloadFactory", "payload retrieved:" + txHex);
+
+        final Handler handler = new Handler();
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+
+                Looper.prepare();
+
+                String response = null;
+                String api = useMainNet ? "v2/pushtx/" : "test/v2/pushtx/";
+
+                try {
+                    response = postURL(null, "https://api.samouraiwallet.com/" + api, "tx=" + txHex);
+                }
+                catch(Exception e) {
+                    Log.d("PayloadFactory", e.getMessage());
+                    e.printStackTrace();
+                    response = e.getMessage();
+                }
+
+                Log.d("PayloadFactory", response);
+
+                final String _response = response;
+
+                Handler handler = new Handler();
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        Intent intent = new Intent("com.samourai.ponydirect.LOG");
+                        intent.putExtra("msg", context.getText(R.string.broadcasted) + ":" + _response);
+                        LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+                    }
+                });
+
+                Looper.loop();
+
+            }
+        }).start();
+
+    }
+
+    public String postURL(String contentType, String request, String urlParameters) throws Exception {
+
+        String error = null;
+
+        for (int ii = 0; ii < 3; ++ii) {
+            URL url = new URL(request);
+            HttpURLConnection connection = (HttpURLConnection)url.openConnection();
+            try {
+                connection.setDoOutput(true);
+                connection.setDoInput(true);
+                connection.setInstanceFollowRedirects(false);
+                connection.setRequestMethod("POST");
+                connection.setRequestProperty("Content-Type", contentType == null ? "application/x-www-form-urlencoded" : contentType);
+                connection.setRequestProperty("charset", "utf-8");
+                connection.setRequestProperty("Accept", "application/json");
+                connection.setRequestProperty("Content-Length", "" + Integer.toString(urlParameters.getBytes().length));
+                connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1650.57 Safari/537.36");
+
+                connection.setUseCaches (false);
+
+                connection.setConnectTimeout(60000);
+                connection.setReadTimeout(60000);
+
+                connection.connect();
+
+                DataOutputStream wr = new DataOutputStream(connection.getOutputStream());
+                wr.writeBytes(urlParameters);
+                wr.flush();
+                wr.close();
+
+                connection.setInstanceFollowRedirects(false);
+
+                if (connection.getResponseCode() == 200) {
+//					System.out.println("postURL:return code 200");
+                    return IOUtils.toString(connection.getInputStream(), "UTF-8");
+                }
+                else {
+                    error = IOUtils.toString(connection.getErrorStream(), "UTF-8");
+//                    System.out.println("postURL:return code " + error);
+                }
+
+                Thread.sleep(5000);
+            } finally {
+                connection.disconnect();
+            }
+        }
+
+        return error;
     }
 
 }

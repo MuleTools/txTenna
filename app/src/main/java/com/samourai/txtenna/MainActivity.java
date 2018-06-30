@@ -381,7 +381,7 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        final Transaction tx = new Transaction(MainNetParams.get(), Hex.decode(hexTx));
+        final Transaction tx = new Transaction(PrefsUtil.getInstance(MainActivity.this).getValue(PrefsUtil.USE_MAINNET, true) == true ? MainNetParams.get() : TestNet3Params.get(), Hex.decode(hexTx));
         final String msg = MainActivity.this.getString(R.string.broadcast) + ":" + tx.getHashAsString() + " " + getText(R.string.to) + " " + PrefsUtil.getInstance(MainActivity.this).getValue(PrefsUtil.SMS_RELAY, MainActivity.this.getText(R.string.default_relay).toString()) + " ?";
 
         final TextView tvHexTx = new TextView(MainActivity.this);
