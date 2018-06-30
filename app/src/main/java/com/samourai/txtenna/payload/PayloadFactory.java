@@ -51,7 +51,7 @@ public class PayloadFactory {
     private static final int smsSegment0Len = 40;
     private static final int smsSegment1Len = 120;
 
-    private static final int goTennaSegment0Len = 115;
+    private static final int goTennaSegment0Len = 110;
     private static final int goTennaSegment1Len = 190;
 
     private static int messageIdx = 0;
@@ -127,7 +127,12 @@ public class PayloadFactory {
                 if(PrefsUtil.getInstance(context).getValue(PrefsUtil.USE_MAINNET, true) == false)    {
                     seg0.n = "t";
                 }
-                seg0.h = tx.getHashAsString();
+                if(PrefsUtil.getInstance(context).getValue(PrefsUtil.USE_Z85, false) == true)    {
+                    seg0.h = Z85.getInstance().encode(Hex.decode(tx.getHashAsString()));
+                }
+                else    {
+                    seg0.h = tx.getHashAsString();
+                }
                 seg0.t = strRaw.substring(0, strRaw.length() > segment0Len ? segment0Len : strRaw.length());
                 if(strRaw.length() > segment0Len)    {
                     strRaw = strRaw.substring(segment0Len);
@@ -191,7 +196,12 @@ public class PayloadFactory {
 //                idx = seg0.c;
                 idx = 0;
                 id = seg0.i;
-                hash = seg0.h;
+                if(Z85.getInstance().isZ85(seg0.h))    {
+                    hash = Hex.toHexString(Z85.getInstance().decode(seg0.h));
+                }
+                else    {
+                    hash = seg0.h;
+                }
                 txHex = seg0.t;
                 net = seg0.n;
 
@@ -278,7 +288,7 @@ public class PayloadFactory {
                     handler.post(new Runnable() {
                         @Override
                         public void run() {
-                            Toast.makeText(context, "sending:" + s, Toast.LENGTH_SHORT).show();
+                            Toast.makeText(context, "sent:" + s, Toast.LENGTH_SHORT).show();
                         }
                     });
 
