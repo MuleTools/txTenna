@@ -6,10 +6,14 @@ import android.os.Handler;
 import android.os.Looper;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import com.samourai.sms.SMSSender;
+import com.samourai.txtenna.MainActivity;
+import com.samourai.txtenna.R;
 import com.samourai.txtenna.utils.BroadcastLogUtil;
 import com.samourai.txtenna.utils.Z85;
 import com.samourai.txtenna.prefs.PrefsUtil;
@@ -249,6 +253,50 @@ public class PayloadFactory {
         else    {
             return txHex;
         }
+
+    }
+
+    public void sendPayload(final List<String> payload)   {
+
+        final Handler handler = new Handler();
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+
+                Looper.prepare();
+
+                for(int i = 0; i < payload.size(); i++)   {
+
+                    final String s = payload.get(i);
+
+                    final int ii = i + 1;
+
+                    SMSSender.getInstance(context).send(s, PrefsUtil.getInstance(context).getValue(PrefsUtil.SMS_RELAY, context.getString(R.string.default_relay)));
+                    Log.d("PayloadFactory", "sent:" + s);
+
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(context, "sending:" + s, Toast.LENGTH_SHORT).show();
+                        }
+                    });
+
+                    try {
+                        Thread.sleep(5000L);
+                    }
+                    catch(Exception e) {
+                        ;
+                    }
+
+                }
+
+                BroadcastLogUtil.getInstance().add(payload.get(0));
+
+                Looper.loop();
+
+            }
+        }).start();
 
     }
 

@@ -8,7 +8,10 @@ import android.os.Handler;
 import android.support.v4.content.LocalBroadcastManager;
 import android.telephony.SmsMessage;
 import android.util.Log;
+import android.widget.Toast;
 
+import com.samourai.txtenna.MainActivity;
+import com.samourai.txtenna.R;
 import com.samourai.txtenna.payload.PayloadFactory;
 
 import com.google.gson.Gson;
@@ -53,7 +56,7 @@ public class SMSReceiver extends BroadcastReceiver {
                 String incomingTelNo = null;
                 int id = -1;
                 for(SmsMessage currentMessage : messages)	{
-                    String msg = currentMessage.getDisplayMessageBody().trim();
+                    final String msg = currentMessage.getDisplayMessageBody().trim();
                     incomingTelNo = currentMessage.getDisplayOriginatingAddress();
 
                     if(seen.contains(incomingTelNo + ":" + msg))    {
@@ -103,6 +106,14 @@ public class SMSReceiver extends BroadcastReceiver {
                         }
                         ids.put(Integer.toString(i), segments);
                         incoming.put(incomingTelNo, ids);
+
+                        handler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(context, "receiving:" + msg, Toast.LENGTH_SHORT).show();
+                            }
+                        });
+
                     }
 
                 }
@@ -128,6 +139,8 @@ public class SMSReceiver extends BroadcastReceiver {
     }
 
     private void verifyIncoming(final Context context, String incomingTelNo, int id)   {
+
+        Handler handler = new Handler();
 
         HashMap<String, HashMap<String,String>> ids = incoming.get(incomingTelNo);
         HashMap<String, String> segments = ids.get(Integer.toString(id));
@@ -163,7 +176,7 @@ public class SMSReceiver extends BroadcastReceiver {
 
             for(String key : segments.keySet())   {
 
-                String msg = segments.get(key);
+                final String msg = segments.get(key);
 
                 if(msg.contains("\"s\":"))    {
                     seg0 = gson.fromJson(msg, PayloadFactory.Seg0.class);
@@ -180,20 +193,14 @@ public class SMSReceiver extends BroadcastReceiver {
 
             }
 
-            List<String> segmentList = Arrays.asList(s);
+            final List<String> segmentList = Arrays.asList(s);
 
-            /*
-            final String _hash = hash;
-            Handler handler = new Handler();
             handler.post(new Runnable() {
                 @Override
                 public void run() {
-                    Intent intent = new Intent("com.samourai.txtenna.LOG");
-                    intent.putExtra("msg", "broadcasting:" + _hash);
-                    LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+                    Toast.makeText(context, "received:" + segmentList.size(), Toast.LENGTH_SHORT).show();
                 }
             });
-            */
 
             PayloadFactory.getInstance(context).broadcastPayload(segmentList, (net != null && net.equals("t")) ? false : true);
 

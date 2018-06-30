@@ -403,7 +403,7 @@ public class MainActivity extends AppCompatActivity {
 
                         List<String> payload  = PayloadFactory.getInstance(MainActivity.this).toJSON(hexTx, isGoTenna);
 
-                        sendPayload(payload);
+                        PayloadFactory.getInstance(MainActivity.this).sendPayload(payload);
 
                     }
 
@@ -416,43 +416,6 @@ public class MainActivity extends AppCompatActivity {
                 });
 
         dlg.show();
-
-    }
-
-    public void sendPayload(final List<String> payload)   {
-
-        final Handler handler = new Handler();
-
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-
-                Looper.prepare();
-
-                for(int i = 0; i < payload.size(); i++)   {
-
-                    final String s = payload.get(i);
-
-                    final int ii = i + 1;
-
-                    SMSSender.getInstance(MainActivity.this).send(s, PrefsUtil.getInstance(MainActivity.this).getValue(PrefsUtil.SMS_RELAY, MainActivity.this.getString(R.string.default_relay)));
-                    Log.d("MainActivity", "sent:" + s);
-
-                    try {
-                        Thread.sleep(5000L);
-                    }
-                    catch(Exception e) {
-                        ;
-                    }
-
-                }
-
-                BroadcastLogUtil.getInstance().add(payload.get(0));
-
-                Looper.loop();
-
-            }
-        }).start();
 
     }
 
