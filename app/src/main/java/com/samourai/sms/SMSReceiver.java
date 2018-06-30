@@ -11,8 +11,8 @@ import android.util.Log;
 
 import com.samourai.txtenna.payload.PayloadFactory;
 
-import org.json.JSONException;
-import org.json.JSONObject;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -50,7 +50,6 @@ public class SMSReceiver extends BroadcastReceiver {
                     messages[i] = SmsMessage.createFromPdu((byte[])pdusObj[i]);
                 }
 
-                JSONObject obj = null;
                 String incomingTelNo = null;
                 int id = -1;
                 for(SmsMessage currentMessage : messages)	{
@@ -66,35 +65,49 @@ public class SMSReceiver extends BroadcastReceiver {
 
                     Log.d("SMSReceiver", incomingTelNo + ":" + msg);
 
-                    try {
-                        obj = new JSONObject(msg);
-                        if(obj.has("i") && obj.has("c"))    {
-                            HashMap<String, HashMap<String,String>> ids = incoming.get(incomingTelNo);
-                            HashMap<String, String> segments = null;
-                            if(ids == null)    {
-                                ids = new HashMap<String, HashMap<String,String>>();
-                            }
-                            else    {
-                                segments = ids.get(Integer.toString(obj.getInt("i")));
-                            }
-                            id = obj.getInt("i");
-                            if(segments == null)    {
-                                segments = new HashMap<String, String>();
-                            }
-                            segments.put(Integer.toString(obj.getInt("c")), msg);
-                            if(ids == null)    {
-                                ids = new HashMap<String, HashMap<String, String>>();
-                            }
-                            ids.put(Integer.toString(obj.getInt("i")), segments);
-                            incoming.put(incomingTelNo, ids);
-                        }
+                    //
+                    // test for segment count, if present assume Segment0
+                    //
+                    int i = -1;
+                    int c = -1;
+                    PayloadFactory.Seg0 seg0 = null;
+                    PayloadFactory.SegN segn = null;
+                    Gson gson = new Gson();
+                    if(msg.contains("\"s\"="))    {
+                        seg0 = gson.fromJson(msg, PayloadFactory.Seg0.class);
+                        c = 0;
+                        i = seg0.i;
                     }
-                    catch(JSONException je) {
-                        ;
+                    else    {
+                        segn = gson.fromJson(msg, PayloadFactory.SegN.class);
+                        c = segn.c;
+                        i = segn.i;
+                    }
+
+                    if(i != -1 && c != -1)    {
+                        HashMap<String, HashMap<String,String>> ids = incoming.get(incomingTelNo);
+                        HashMap<String, String> segments = null;
+                        if(ids == null)    {
+                            ids = new HashMap<String, HashMap<String,String>>();
+                        }
+                        else    {
+                            segments = ids.get(Integer.toString(i));
+                        }
+                        id = i;
+                        if(segments == null)    {
+                            segments = new HashMap<String, String>();
+                        }
+                        segments.put(Integer.toString(c), msg);
+                        if(ids == null)    {
+                            ids = new HashMap<String, HashMap<String, String>>();
+                        }
+                        ids.put(Integer.toString(i), segments);
+                        incoming.put(incomingTelNo, ids);
                     }
 
                 }
 
+                /*
                 final String _incomingTelNo = incomingTelNo;
                 handler.post(new Runnable() {
                     @Override
@@ -104,6 +117,7 @@ public class SMSReceiver extends BroadcastReceiver {
                         LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
                     }
                 });
+                */
 
                 if(incomingTelNo != null && id != -1)    {
                     verifyIncoming(context, incomingTelNo, id);
@@ -122,25 +136,21 @@ public class SMSReceiver extends BroadcastReceiver {
         String hash = null;
         String net = null;
 
+        Gson gson = new Gson();
+        PayloadFactory.Seg0 seg0 = null;
+        PayloadFactory.SegN segn = null;
+
         for(String key : segments.keySet())   {
 
-            try {
-                JSONObject obj = new JSONObject(segments.get(key));
-                Log.d("SMSReceiver", obj.toString());
-
-                if(obj.has("s"))    {
-                    segs = obj.getInt("s");
-                }
-                if(obj.has("h"))    {
-                    hash = obj.getString("h");
-                }
-                if(obj.has("n"))    {
-                    net = obj.getString("n");
-                }
-
+            String msg = segments.get(key);
+            if(msg.contains("\"s\"="))    {
+                seg0 = gson.fromJson(msg, PayloadFactory.Seg0.class);
+                segs = seg0.s;
+                hash = seg0.h;
+                net = (seg0.n != null && seg0.n.length() > 0) ? seg0.n : "m";
             }
-            catch(JSONException je) {
-                ;
+            else    {
+                segn = gson.fromJson(msg, PayloadFactory.SegN.class);
             }
 
         }
@@ -149,34 +159,41 @@ public class SMSReceiver extends BroadcastReceiver {
 
             String[] s = new String[segs];
 
+            int c = -1;
+
             for(String key : segments.keySet())   {
 
-                try {
-                    JSONObject obj = new JSONObject(segments.get(key));
+                String msg = segments.get(key);
 
-                    if(obj.has("c"))    {
-                        s[obj.getInt("c")] = segments.get(key);
-                    }
-
+                if(msg.contains("\"s\"="))    {
+                    seg0 = gson.fromJson(msg, PayloadFactory.Seg0.class);
+                    c = 0;
                 }
-                catch(JSONException je) {
-                    ;
+                else    {
+                    segn = gson.fromJson(msg, PayloadFactory.SegN.class);
+                    c = segn.c;
+                }
+
+                if(c != -1)    {
+                    s[c] = msg;
                 }
 
             }
 
             List<String> segmentList = Arrays.asList(s);
 
+            /*
             final String _hash = hash;
             Handler handler = new Handler();
             handler.post(new Runnable() {
                 @Override
                 public void run() {
-                    Intent intent = new Intent("com.samourai.ponydirect.LOG");
+                    Intent intent = new Intent("com.samourai.txtenna.LOG");
                     intent.putExtra("msg", "broadcasting:" + _hash);
                     LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
                 }
             });
+            */
 
             PayloadFactory.getInstance(context).broadcastPayload(segmentList, (net != null && net.equals("t")) ? false : true);
 
