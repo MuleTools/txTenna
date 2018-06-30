@@ -8,10 +8,10 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import com.google.gson.Gson;
-
 import com.google.gson.GsonBuilder;
-import com.samourai.txtenna.R;
-import com.samourai.txtenna.Z85;
+
+import com.samourai.txtenna.utils.BroadcastLogUtil;
+import com.samourai.txtenna.utils.Z85;
 import com.samourai.txtenna.prefs.PrefsUtil;
 
 import org.apache.commons.io.IOUtils;
@@ -279,6 +279,7 @@ public class PayloadFactory {
 
                 Log.d("PayloadFactory", response);
 
+                /*
                 final String _response = response;
 
                 Handler handler = new Handler();
@@ -290,6 +291,9 @@ public class PayloadFactory {
                         LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
                     }
                 });
+                */
+
+                BroadcastLogUtil.getInstance().add(payload.get(0));
 
                 Looper.loop();
 

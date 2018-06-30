@@ -36,10 +36,12 @@ import android.widget.Toast;
 
 import com.dm.zbar.android.scanner.ZBarConstants;
 import com.dm.zbar.android.scanner.ZBarScannerActivity;
+import com.google.gson.Gson;
 import com.samourai.sms.SMSReceiver;
 import com.samourai.sms.SMSSender;
 import com.samourai.txtenna.payload.PayloadFactory;
 import com.samourai.txtenna.prefs.PrefsUtil;
+import com.samourai.txtenna.utils.BroadcastLogUtil;
 import com.yanzhenjie.zbar.Symbol;
 
 import org.bitcoinj.core.Transaction;
@@ -65,7 +67,7 @@ public class MainActivity extends AppCompatActivity {
     private IntentFilter isFilter = null;
     private BroadcastReceiver isReceiver = null;
 
-    public static final String ACTION_INTENT = "com.samourai.ponydirect.LOG";
+    public static final String ACTION_INTENT = "com.samourai.txtenna.LOG";
     protected BroadcastReceiver receiver = new BroadcastReceiver() {
         @Override
         public void onReceive(final Context context, Intent intent) {
@@ -434,20 +436,9 @@ public class MainActivity extends AppCompatActivity {
                     final int ii = i + 1;
 
                     SMSSender.getInstance(MainActivity.this).send(s, PrefsUtil.getInstance(MainActivity.this).getValue(PrefsUtil.SMS_RELAY, MainActivity.this.getString(R.string.default_relay)));
+                    Log.d("MainActivity", "sent:" + s);
 
                     try {
-                        handler.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                /*
-                                Intent intent = new Intent("com.samourai.ponydirect.LOG");
-                                intent.putExtra("msg", MainActivity.this.getText(R.string.sent_sms) + ", " + ii + "/" + payload.size() + ":" + s);
-                                LocalBroadcastManager.getInstance(MainActivity.this).sendBroadcast(intent);
-                                */
-                                Log.d("MainActivity", "sent:" + s);
-                            }
-                        });
-
                         Thread.sleep(5000L);
                     }
                     catch(Exception e) {
@@ -455,6 +446,8 @@ public class MainActivity extends AppCompatActivity {
                     }
 
                 }
+
+                BroadcastLogUtil.getInstance().add(payload.get(0));
 
                 Looper.loop();
 
