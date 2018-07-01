@@ -76,8 +76,15 @@ public class PayloadFactory {
 
     public List<String> toJSON(String strHexTx, boolean isGoTenna) {
 
-        final int segment0Len = isGoTenna ? goTennaSegment0Len : smsSegment0Len;
-        final int segment1Len = isGoTenna ? goTennaSegment1Len : smsSegment1Len;
+        int segment0Len = isGoTenna ? goTennaSegment0Len : smsSegment0Len;
+        int segment1Len = isGoTenna ? goTennaSegment1Len : smsSegment1Len;
+
+        //
+        // if Z85 encoding, use 24 extra characters for tx in segment0. Hash encoded on 40 characters instead of 64
+        //
+        if(PrefsUtil.getInstance(context).getValue(PrefsUtil.USE_Z85, false) == true)    {
+            segment0Len += 24;
+        }
 
         List<String> ret = new ArrayList<String>();
 
@@ -335,7 +342,15 @@ public class PayloadFactory {
                     response = e.getMessage();
                 }
 
-                Log.d("PayloadFactory", response);
+                final String _response = response;
+
+                Log.d("PayloadFactory", _response);
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(context, _response, Toast.LENGTH_SHORT).show();
+                    }
+                });
 
                 /*
                 final String _response = response;
