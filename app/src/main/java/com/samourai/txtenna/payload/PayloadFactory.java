@@ -1,10 +1,8 @@
 package com.samourai.txtenna.payload;
 
 import android.content.Context;
-import android.content.Intent;
 import android.os.Handler;
 import android.os.Looper;
-import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -12,7 +10,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import com.samourai.sms.SMSSender;
-import com.samourai.txtenna.MainActivity;
 import com.samourai.txtenna.R;
 import com.samourai.txtenna.utils.BroadcastLogUtil;
 import com.samourai.txtenna.utils.Z85;
@@ -35,7 +32,6 @@ public class PayloadFactory {
 
     public class Seg0   {
         public int s = -1;
-        public int c = 0;
         public int i = -1;
         public String n = "m";
         public String h = null;
@@ -200,7 +196,6 @@ public class PayloadFactory {
                 Seg0 seg0 = gson.fromJson(s, Seg0.class);
 
                 count = seg0.s;
-//                idx = seg0.c;
                 idx = 0;
                 id = seg0.i;
                 if(Z85.getInstance().isZ85(seg0.h))    {
