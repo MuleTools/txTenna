@@ -339,7 +339,7 @@ public class PayloadFactory {
 
                 }
 
-                BroadcastLogUtil.getInstance().add(payload.get(0));
+                BroadcastLogUtil.getInstance().add(payload.get(0), true);
 
                 Looper.loop();
 
@@ -397,7 +397,7 @@ public class PayloadFactory {
                 });
                 */
 
-                BroadcastLogUtil.getInstance().add(payload.get(0));
+                BroadcastLogUtil.getInstance().add(payload.get(0), false);
 
                 Looper.loop();
 

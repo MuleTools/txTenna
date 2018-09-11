@@ -36,7 +36,7 @@ public class BroadcastLogUtil {
         broadcastLog.add(entry);
     }
 
-    public void add(String s) {
+    public void add(String s, boolean relayed) {
 
         BroadcastLogEntry entry = new BroadcastLogEntry();
         Gson gson = new Gson();
@@ -50,6 +50,7 @@ public class BroadcastLogUtil {
         entry.ts = System.currentTimeMillis() / 1000L;
         entry.hash = seg0.h;
         entry.net = (seg0.n != null || seg0.n.length() > 0) ? seg0.n : "m";
+        entry.relayed = relayed;
 
         add(entry);
     }
