@@ -67,7 +67,7 @@ public class MainActivity extends AppCompatActivity {
     private IntentFilter isFilter = null;
     private BroadcastReceiver isReceiver = null;
 
-    private boolean relayViaGoTenna = false;
+    private Boolean relayViaGoTenna = null;
 
     public static final String ACTION_INTENT = "com.samourai.txtenna.LOG";
     protected BroadcastReceiver receiver = new BroadcastReceiver() {
@@ -248,6 +248,10 @@ public class MainActivity extends AppCompatActivity {
             startActivity(new Intent(this, NetworkingActivity.class));
             return true;
         }
+        if (id == R.id.qr_scan) {
+            doScanHexTx();
+            return true;
+        }
 
         return super.onOptionsItemSelected(item);
     }
@@ -399,25 +403,62 @@ public class MainActivity extends AppCompatActivity {
         AlertDialog.Builder dlg = new AlertDialog.Builder(MainActivity.this)
                 .setTitle(R.string.app_name)
                 .setMessage(msg)
-                .setCancelable(true)
-                .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int whichButton) {
+                .setCancelable(true);
 
-                        dialog.dismiss();
+        if(relayViaGoTenna != null)    {
+            dlg.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int whichButton) {
 
-                        List<String> payload  = PayloadFactory.getInstance(MainActivity.this).toJSON(hexTx, relayViaGoTenna);
+                    dialog.dismiss();
 
-                        PayloadFactory.getInstance(MainActivity.this).relayPayload(payload);
+                    List<String> payload  = PayloadFactory.getInstance(MainActivity.this).toJSON(hexTx, relayViaGoTenna);
+                    PayloadFactory.getInstance(MainActivity.this).relayPayload(payload);
+                    relayViaGoTenna = null;
 
-                    }
+                }
 
-                }).setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int whichButton) {
+            });
+            dlg.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int whichButton) {
 
-                        dialog.dismiss();
+                    dialog.dismiss();
 
-                    }
-                });
+                }
+            });
+        }
+        else    {
+            dlg.setPositiveButton(R.string.gotenna_mesh, new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int whichButton) {
+
+                    dialog.dismiss();
+
+                    List<String> payload  = PayloadFactory.getInstance(MainActivity.this).toJSON(hexTx, true);
+                    PayloadFactory.getInstance(MainActivity.this).relayPayload(payload);
+                    relayViaGoTenna = null;
+
+                }
+
+            });
+            dlg.setNeutralButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int whichButton) {
+
+                    dialog.dismiss();
+
+                }
+
+            });
+            dlg.setNegativeButton(R.string.sms_broadcast, new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int whichButton) {
+
+                    dialog.dismiss();
+
+                    List<String> payload  = PayloadFactory.getInstance(MainActivity.this).toJSON(hexTx, false);
+                    PayloadFactory.getInstance(MainActivity.this).relayPayload(payload);
+                    relayViaGoTenna = null;
+
+                }
+            });
+        }
 
         dlg.show();
 
