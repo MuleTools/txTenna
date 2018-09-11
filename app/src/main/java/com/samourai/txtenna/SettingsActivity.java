@@ -26,6 +26,22 @@ public class SettingsActivity extends PreferenceActivity {
         addPreferencesFromResource(R.xml.settings);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
+        final EditTextPreference txTennaPref = (EditTextPreference) findPreference("txTenna");
+        txTennaPref.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+            public boolean onPreferenceChange(Preference preference, Object newValue) {
+
+                String txTenna = newValue.toString();
+                if (txTenna != null && txTenna.length() > 0 && txTenna.matches(regex_url)) {
+                    PrefsUtil.getInstance(SettingsActivity.this).setValue(PrefsUtil.TXTENNA, txTenna);
+                }
+                else {
+                    Toast.makeText(SettingsActivity.this, R.string.invalid_url, Toast.LENGTH_SHORT).show();
+                }
+
+                return true;
+            }
+        });
+
         final EditTextPreference smsRelayPref = (EditTextPreference) findPreference("smsRelay");
         smsRelayPref.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
             public boolean onPreferenceChange(Preference preference, Object newValue) {

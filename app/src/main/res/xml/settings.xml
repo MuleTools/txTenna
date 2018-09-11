@@ -2,6 +2,13 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
     <EditTextPreference
+        android:title="@string/options_txtenna"
+        android:summary="@string/options_txtenna2"
+        android:key="txTenna"
+        android:defaultValue="@string/default_txtenna"
+        />
+
+    <EditTextPreference
         android:title="@string/options_telno"
         android:summary="@string/options_telno2"
         android:key="smsRelay"
