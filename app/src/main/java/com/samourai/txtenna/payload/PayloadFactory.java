@@ -23,8 +23,11 @@ import org.bitcoinj.params.TestNet3Params;
 import org.bouncycastle.util.encoders.Hex;
 
 import java.io.DataOutputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,7 +35,7 @@ public class PayloadFactory {
 
     public class Seg0   {
         public int s = -1;
-        public int i = -1;
+        public String i = null;
         public String n = "m";
         public String h = null;
         public String t = null;
@@ -40,7 +43,7 @@ public class PayloadFactory {
 
     public class SegN   {
         public int c = -1;
-        public int i = -1;
+        public String i = "";
         public String t = null;
     };
 
@@ -110,7 +113,31 @@ public class PayloadFactory {
             }
         }
 
-        int id = messageIdx;
+        String id = null;
+        if(isGoTenna)    {
+            String _id = PrefsUtil.getInstance(context).getValue(PrefsUtil.GOTENNA_UID, "");
+            _id = _id + "|" + messageIdx;
+
+            try {
+                byte[] buf = _id.getBytes("UTF-8");
+                MessageDigest md = MessageDigest.getInstance("MD5");
+                byte[] hash = md.digest(buf);
+                byte[] idBytes = new byte[8];
+                System.arraycopy(hash, 0, idBytes, 0, idBytes.length);
+                if(PrefsUtil.getInstance(context).getValue(PrefsUtil.USE_Z85, false) == true)    {
+                    id = Z85.getInstance().encode(idBytes);
+                }
+                else    {
+                    id = Hex.toHexString(idBytes);
+                }
+            }
+            catch(UnsupportedEncodingException | NoSuchAlgorithmException e) {
+                ;
+            }
+        }
+        else    {
+            id = Integer.toString(messageIdx);
+        }
 
         messageIdx++;
         if(messageIdx > 9999)    {
@@ -125,7 +152,6 @@ public class PayloadFactory {
             if(i == 0)    {
                 Seg0 seg0 = new Seg0();
                 seg0.s = count;
-//                seg0.c = i;
                 seg0.i = id;
                 if(PrefsUtil.getInstance(context).getValue(PrefsUtil.USE_MAINNET, true) == false)    {
                     seg0.n = "t";
@@ -184,7 +210,7 @@ public class PayloadFactory {
         for(int i = 0; i < payload.size(); i++)   {
 
             int count = -1;
-            int id = -1;
+            String id = null;
             int idx = -1;
             String _txHex = null;
 
@@ -197,7 +223,12 @@ public class PayloadFactory {
 
                 count = seg0.s;
                 idx = 0;
-                id = seg0.i;
+                if(Z85.getInstance().isZ85(seg0.i))    {
+                    id = Hex.toHexString(Z85.getInstance().decode(seg0.i));
+                }
+                else    {
+                    id = seg0.i;
+                }
                 if(Z85.getInstance().isZ85(seg0.h))    {
                     hash = Hex.toHexString(Z85.getInstance().decode(seg0.h));
                 }
@@ -214,7 +245,7 @@ public class PayloadFactory {
                 Log.d("PayloadFactory", "incoming:" + seg0.t);
                 Log.d("PayloadFactory", "incoming:" + seg0.n);
 
-                if(count == -1 || idx == -1 || id == -1 || hash == null || txHex == null)    {
+                if(count == -1 || idx == -1 || id == null || id.length() == 0 || hash == null || txHex == null)    {
                     return null;
                 }
 
@@ -231,10 +262,15 @@ public class PayloadFactory {
                 SegN segn = gson.fromJson(s, SegN.class);
 
                 idx = segn.c;
-                id = segn.i;
+                if(Z85.getInstance().isZ85(segn.i))    {
+                    id = Hex.toHexString(Z85.getInstance().decode(segn.i));
+                }
+                else    {
+                    id = segn.i;
+                }
                 _txHex = segn.t;
 
-                if(idx == -1 || id == -1 || _txHex == null)    {
+                if(idx == -1 || id == null || id.length() == 0 || _txHex == null)    {
                     return null;
                 }
 

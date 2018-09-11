@@ -12,6 +12,8 @@ public class PrefsUtil {
     public static final String USE_Z85 = "z85";
     public static final String MESSAGE_IDX = "msgIdx";
 
+    public static final String GOTENNA_UID = "goTennaID";
+
     private static Context context = null;
     private static PrefsUtil instance = null;
 

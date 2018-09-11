@@ -54,7 +54,7 @@ public class SMSReceiver extends BroadcastReceiver {
                 }
 
                 String incomingTelNo = null;
-                int id = -1;
+                String id = null;
                 for(SmsMessage currentMessage : messages)	{
                     final String msg = currentMessage.getDisplayMessageBody().trim();
                     incomingTelNo = currentMessage.getDisplayOriginatingAddress();
@@ -71,7 +71,7 @@ public class SMSReceiver extends BroadcastReceiver {
                     //
                     // test for segment count, if present assume Segment0
                     //
-                    int i = -1;
+                    String i = null;
                     int c = -1;
                     PayloadFactory.Seg0 seg0 = null;
                     PayloadFactory.SegN segn = null;
@@ -87,14 +87,14 @@ public class SMSReceiver extends BroadcastReceiver {
                         i = segn.i;
                     }
 
-                    if(i != -1 && c != -1)    {
+                    if(i != null && i.length() != 0 && c != -1)    {
                         HashMap<String, HashMap<String,String>> ids = incoming.get(incomingTelNo);
                         HashMap<String, String> segments = null;
                         if(ids == null)    {
                             ids = new HashMap<String, HashMap<String,String>>();
                         }
                         else    {
-                            segments = ids.get(Integer.toString(i));
+                            segments = ids.get(i);
                         }
                         id = i;
                         if(segments == null)    {
@@ -104,7 +104,7 @@ public class SMSReceiver extends BroadcastReceiver {
                         if(ids == null)    {
                             ids = new HashMap<String, HashMap<String, String>>();
                         }
-                        ids.put(Integer.toString(i), segments);
+                        ids.put(i, segments);
                         incoming.put(incomingTelNo, ids);
 
                         handler.post(new Runnable() {
@@ -130,7 +130,7 @@ public class SMSReceiver extends BroadcastReceiver {
                 });
                 */
 
-                if(incomingTelNo != null && id != -1)    {
+                if(incomingTelNo != null && id != null && id.length() != 0)    {
                     verifyIncoming(context, incomingTelNo, id);
                 }
 
@@ -138,12 +138,12 @@ public class SMSReceiver extends BroadcastReceiver {
         }
     }
 
-    private void verifyIncoming(final Context context, String incomingTelNo, int id)   {
+    private void verifyIncoming(final Context context, String incomingTelNo, String id)   {
 
         Handler handler = new Handler();
 
         HashMap<String, HashMap<String,String>> ids = incoming.get(incomingTelNo);
-        HashMap<String, String> segments = ids.get(Integer.toString(id));
+        HashMap<String, String> segments = ids.get(id);
 
         int segs = -1;
         String hash = null;
