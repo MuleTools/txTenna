@@ -257,7 +257,7 @@ public class MainActivity extends AppCompatActivity {
 
                 final String strResult = data.getStringExtra(ZBarConstants.SCAN_RESULT).trim();
 
-//                doSendHex(strResult);
+                doSendHex(strResult, false);
 
             }
         }
