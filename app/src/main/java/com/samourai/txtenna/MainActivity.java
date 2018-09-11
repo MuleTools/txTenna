@@ -67,6 +67,8 @@ public class MainActivity extends AppCompatActivity {
     private IntentFilter isFilter = null;
     private BroadcastReceiver isReceiver = null;
 
+    private boolean relayViaGoTenna = false;
+
     public static final String ACTION_INTENT = "com.samourai.txtenna.LOG";
     protected BroadcastReceiver receiver = new BroadcastReceiver() {
         @Override
@@ -118,6 +120,7 @@ public class MainActivity extends AppCompatActivity {
         txTennaSelection.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                relayViaGoTenna = true;
                 Toast.makeText(MainActivity.this, R.string.txTenna_selection, Toast.LENGTH_SHORT).show();
                 bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
             }
@@ -127,6 +130,7 @@ public class MainActivity extends AppCompatActivity {
         smsSelection.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                relayViaGoTenna = false;
                 bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
                 doGetHex();
             }
@@ -257,7 +261,7 @@ public class MainActivity extends AppCompatActivity {
 
                 final String strResult = data.getStringExtra(ZBarConstants.SCAN_RESULT).trim();
 
-                doSendHex(strResult, false);
+                doSendHex(strResult);
 
             }
         }
@@ -308,7 +312,7 @@ public class MainActivity extends AppCompatActivity {
                         Log.d("MainActivity", "hash:" + tx.getHashAsString());
                         try {
                             tx.verify();
-                            doSendHex(strHexTx, false);
+                            doSendHex(strHexTx);
                         }
                         catch(VerificationException ve) {
                             Toast.makeText(MainActivity.this, R.string.invalid_tx, Toast.LENGTH_SHORT).show();
@@ -377,7 +381,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private void doSendHex(final String hexTx, final boolean isGoTenna)    {
+    private void doSendHex(final String hexTx)    {
 
         if(!hexTx.matches("^[A-Fa-f0-9]+$")) {
             return;
@@ -401,7 +405,7 @@ public class MainActivity extends AppCompatActivity {
 
                         dialog.dismiss();
 
-                        List<String> payload  = PayloadFactory.getInstance(MainActivity.this).toJSON(hexTx, isGoTenna);
+                        List<String> payload  = PayloadFactory.getInstance(MainActivity.this).toJSON(hexTx, relayViaGoTenna);
 
                         PayloadFactory.getInstance(MainActivity.this).sendPayload(payload);
 
