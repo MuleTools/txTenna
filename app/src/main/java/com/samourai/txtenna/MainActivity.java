@@ -407,7 +407,7 @@ public class MainActivity extends AppCompatActivity {
 
                         List<String> payload  = PayloadFactory.getInstance(MainActivity.this).toJSON(hexTx, relayViaGoTenna);
 
-                        PayloadFactory.getInstance(MainActivity.this).sendPayload(payload);
+                        PayloadFactory.getInstance(MainActivity.this).relayPayload(payload);
 
                     }
 

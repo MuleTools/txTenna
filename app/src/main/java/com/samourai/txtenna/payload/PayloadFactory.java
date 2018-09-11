@@ -304,7 +304,7 @@ public class PayloadFactory {
 
     }
 
-    public void sendPayload(final List<String> payload)   {
+    public void relayPayload(final List<String> payload)   {
 
         final Handler handler = new Handler();
 
