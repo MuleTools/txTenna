@@ -13,6 +13,7 @@ public class BroadcastLogUtil {
         public String hash = null;
         public String net = null; // "m" == mainnet, "t" == testnet, "g" == goTenna meshnet
         public boolean completed = false;
+        public boolean relayed = false; // true == relayed via sms or goTenna, false == uploaded to network
     }
 
     private static List<BroadcastLogEntry> broadcastLog = null;
