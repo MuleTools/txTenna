@@ -12,8 +12,9 @@ public class BroadcastLogUtil {
         public long ts = -1L;
         public String hash = null;
         public String net = null; // "m" == mainnet, "t" == testnet, "g" == goTenna meshnet
-        public boolean completed = false;
+        public boolean confirmed = false;
         public boolean relayed = false; // true == relayed via sms or goTenna, false == uploaded to network
+        public boolean goTenna = false; // true == relayed via goTenna, false == relayed via sms
     }
 
     private static List<BroadcastLogEntry> broadcastLog = null;
@@ -36,7 +37,7 @@ public class BroadcastLogUtil {
         broadcastLog.add(entry);
     }
 
-    public void add(String s, boolean relayed) {
+    public void add(String s, boolean relayed, boolean goTenna) {
 
         BroadcastLogEntry entry = new BroadcastLogEntry();
         Gson gson = new Gson();
@@ -51,6 +52,7 @@ public class BroadcastLogUtil {
         entry.hash = seg0.h;
         entry.net = (seg0.n != null || seg0.n.length() > 0) ? seg0.n : "m";
         entry.relayed = relayed;
+        entry.goTenna = goTenna;
 
         add(entry);
     }

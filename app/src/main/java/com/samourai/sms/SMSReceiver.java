@@ -202,7 +202,7 @@ public class SMSReceiver extends BroadcastReceiver {
                 }
             });
 
-            PayloadFactory.getInstance(context).broadcastPayload(segmentList, (net != null && net.equals("t")) ? false : true);
+            PayloadFactory.getInstance(context).broadcastPayload(segmentList, (net != null && net.equals("t")) ? false : true, false);
 
         }
         else    {

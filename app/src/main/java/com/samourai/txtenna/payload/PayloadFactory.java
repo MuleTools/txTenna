@@ -339,7 +339,7 @@ public class PayloadFactory {
 
                 }
 
-                BroadcastLogUtil.getInstance().add(payload.get(0), true);
+                BroadcastLogUtil.getInstance().add(payload.get(0), true, false);
 
                 Looper.loop();
 
@@ -348,7 +348,7 @@ public class PayloadFactory {
 
     }
 
-    public void broadcastPayload(final List<String> payload, final boolean useMainNet)   {
+    public void broadcastPayload(final List<String> payload, final boolean useMainNet, final boolean goTenna)   {
 
         final String txHex = fromJSON(payload);
         Log.d("PayloadFactory", "payload retrieved:" + txHex);
@@ -397,7 +397,7 @@ public class PayloadFactory {
                 });
                 */
 
-                BroadcastLogUtil.getInstance().add(payload.get(0), false);
+                BroadcastLogUtil.getInstance().add(payload.get(0), false, goTenna);
 
                 Looper.loop();
 
