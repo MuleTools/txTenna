@@ -3,6 +3,10 @@ package com.samourai.txtenna.utils;
 import com.google.gson.Gson;
 import com.samourai.txtenna.payload.PayloadFactory;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -63,6 +67,47 @@ public class BroadcastLogUtil {
 
     public void setBroadcastLog(List<BroadcastLogEntry> log)    {
         broadcastLog = log;
+    }
+
+    public JSONArray toJSON() {
+
+        JSONArray entries = new JSONArray();
+        try {
+            for(BroadcastLogEntry entry : broadcastLog) {
+                JSONObject obj = new JSONObject();
+                obj.put("hash", entry.hash);
+                obj.put("ts", entry.ts);
+                obj.put("net", entry.net);
+                obj.put("confirmed", entry.confirmed);
+                obj.put("relayed", entry.relayed);
+                obj.put("goTenna", entry.goTenna);
+                entries.put(obj);
+            }
+        }
+        catch(JSONException je) {
+            ;
+        }
+
+        return entries;
+    }
+
+    public void fromJSON(JSONArray entries) {
+        try {
+            for(int i = 0; i < entries.length(); i++) {
+                JSONObject obj = entries.getJSONObject(i);
+                BroadcastLogEntry entry = new BroadcastLogEntry();
+                entry.hash = obj.getString("hash");
+                entry.ts = obj.getLong("ts");
+                entry.net = obj.getString("net");
+                entry.confirmed = obj.getBoolean("confirmed");
+                entry.relayed = obj.getBoolean("relayed");
+                entry.goTenna = obj.getBoolean("goTenna");
+                add(entry);
+            }
+        }
+        catch(JSONException ex) {
+            throw new RuntimeException(ex);
+        }
     }
 
 }
