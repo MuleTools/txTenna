@@ -21,9 +21,20 @@ import org.bitcoinj.params.MainNetParams;
 import org.bitcoinj.params.TestNet3Params;
 
 import org.bouncycastle.util.encoders.Hex;
+import org.json.JSONException;
+import org.json.JSONObject;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
+import java.io.Writer;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.security.MessageDigest;
@@ -32,6 +43,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PayloadFactory {
+
+    private final static String dataDir = "wallet";
+    private final static String strFilename = "txtenna.dat";
 
     public class Seg0   {
         public int s = -1;
@@ -454,6 +468,71 @@ public class PayloadFactory {
         }
 
         return error;
+    }
+
+    public void writeBroadcastLog() throws IOException, JSONException {
+        JSONObject obj = new JSONObject();
+        obj.put("logs", BroadcastLogUtil.getInstance().toJSON());
+        serialize(obj);
+    }
+
+    public void readBroadcastLog() throws IOException, JSONException {
+        JSONObject obj = deserialize();
+        if(obj != null && obj.has("logs"))    {
+            BroadcastLogUtil.getInstance().fromJSON(obj.getJSONArray("logs"));
+        }
+    }
+
+    private synchronized void serialize(JSONObject jsonobj) throws IOException, JSONException   {
+
+        File dir = context.getDir(dataDir, Context.MODE_PRIVATE);
+        File newfile = new File(dir, strFilename);
+        newfile.setWritable(true, true);
+
+        if(newfile.exists()) {
+            newfile.delete();
+        }
+        newfile.createNewFile();
+
+        String jsonstr = jsonobj.toString(4);
+        String data = jsonstr;
+
+        if(data != null)    {
+            Writer out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(newfile), "UTF-8"));
+            try {
+                out.write(data);
+            } finally {
+                out.close();
+            }
+
+        }
+
+    }
+
+    private synchronized JSONObject deserialize() throws IOException, JSONException {
+
+        File dir = context.getDir(dataDir, Context.MODE_PRIVATE);
+        File file = new File(dir, strFilename);
+        StringBuilder sb = new StringBuilder();
+
+        BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(file), "UTF8"));
+        String str = null;
+
+        while((str = in.readLine()) != null) {
+            sb.append(str);
+        }
+
+        in.close();
+
+        JSONObject jsonObj = null;
+        try {
+            jsonObj = new JSONObject(sb.toString());
+        }
+        catch(JSONException je)   {
+            ;
+        }
+
+        return jsonObj;
     }
 
 }
