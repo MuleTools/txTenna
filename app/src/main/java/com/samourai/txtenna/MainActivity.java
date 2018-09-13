@@ -49,7 +49,9 @@ import org.bitcoinj.core.VerificationException;
 import org.bitcoinj.params.MainNetParams;
 import org.bitcoinj.params.TestNet3Params;
 import org.bouncycastle.util.encoders.Hex;
+import org.json.JSONException;
 
+import java.io.IOException;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
@@ -143,6 +145,13 @@ public class MainActivity extends AppCompatActivity {
         IntentFilter filter = new IntentFilter(ACTION_INTENT);
         LocalBroadcastManager.getInstance(MainActivity.this).registerReceiver(receiver, filter);
 
+        try {
+            PayloadFactory.getInstance(MainActivity.this).readBroadcastLog();
+        }
+        catch(JSONException | IOException e) {
+            e.printStackTrace();
+        }
+
     }
 
     @Override
@@ -186,6 +195,13 @@ public class MainActivity extends AppCompatActivity {
         }
         catch(IllegalArgumentException iae) {
             ;
+        }
+
+        try {
+            PayloadFactory.getInstance(MainActivity.this).writeBroadcastLog();
+        }
+        catch(JSONException | IOException e) {
+            e.printStackTrace();
         }
 
         super.onDestroy();

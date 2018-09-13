@@ -55,4 +55,10 @@
     <string name="relay_to_testnet">Broadcast to bitcoin testnet</string>
     <string name="unknown">TBD</string>
 
+    <string name="relayed_to_mesh">Relayed via goTenna mesh network</string>
+    <string name="relayed_to_sms">Relayed via SMS</string>
+    <string name="broadcast_to_bitcoin">Broadcast to bitcoin network</string>
+    <string name="received_via_mesh">Received via goTenna mesh network</string>
+    <string name="received_via_sms">Received via SMS</string>
+
 </resources>

@@ -1,8 +1,11 @@
 package com.samourai.txtenna.utils;
 
+import android.util.Log;
+
 import com.google.gson.Gson;
 import com.samourai.txtenna.payload.PayloadFactory;
 
+import org.bouncycastle.util.encoders.Hex;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -38,7 +41,17 @@ public class BroadcastLogUtil {
     }
 
     public void add(BroadcastLogEntry entry)    {
-        broadcastLog.add(entry);
+
+        if(Z85.getInstance().isZ85(entry.hash))    {
+            byte[] h = Z85.getInstance().decode(entry.hash);
+            entry.hash = Hex.toHexString(h);
+        }
+
+        broadcastLog.add(0, entry);
+
+        if(broadcastLog.size() > 50)    {
+            broadcastLog = broadcastLog.subList(0, 50);
+        }
     }
 
     public void add(String s, boolean relayed, boolean goTenna) {
@@ -53,7 +66,13 @@ public class BroadcastLogUtil {
         }
 
         entry.ts = System.currentTimeMillis() / 1000L;
-        entry.hash = seg0.h;
+        if(Z85.getInstance().isZ85(seg0.h))    {
+            byte[] h = Z85.getInstance().decode(seg0.h);
+            entry.hash = Hex.toHexString(h);
+        }
+        else    {
+            entry.hash = seg0.h;
+        }
         entry.net = (seg0.n != null || seg0.n.length() > 0) ? seg0.n : "m";
         entry.relayed = relayed;
         entry.goTenna = goTenna;
@@ -81,6 +100,7 @@ public class BroadcastLogUtil {
                 obj.put("confirmed", entry.confirmed);
                 obj.put("relayed", entry.relayed);
                 obj.put("goTenna", entry.goTenna);
+                Log.d("BroadcastLogUtil", "toJSON:" + obj.toString());
                 entries.put(obj);
             }
         }
@@ -95,6 +115,7 @@ public class BroadcastLogUtil {
         try {
             for(int i = 0; i < entries.length(); i++) {
                 JSONObject obj = entries.getJSONObject(i);
+                Log.d("BroadcastLogUtil", "fromJSON:" + obj.toString());
                 BroadcastLogEntry entry = new BroadcastLogEntry();
                 entry.hash = obj.getString("hash");
                 entry.ts = obj.getLong("ts");

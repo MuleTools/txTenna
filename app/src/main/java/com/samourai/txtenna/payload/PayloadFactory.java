@@ -473,11 +473,13 @@ public class PayloadFactory {
     public void writeBroadcastLog() throws IOException, JSONException {
         JSONObject obj = new JSONObject();
         obj.put("logs", BroadcastLogUtil.getInstance().toJSON());
+        Log.d("PayloadFactory", "writing:" + obj.toString());
         serialize(obj);
     }
 
     public void readBroadcastLog() throws IOException, JSONException {
         JSONObject obj = deserialize();
+        Log.d("PayloadFactory", "reading:" + obj.toString());
         if(obj != null && obj.has("logs"))    {
             BroadcastLogUtil.getInstance().fromJSON(obj.getJSONArray("logs"));
         }
@@ -494,9 +496,7 @@ public class PayloadFactory {
         }
         newfile.createNewFile();
 
-        String jsonstr = jsonobj.toString(4);
-        String data = jsonstr;
-
+        String data = jsonobj.toString(4);
         if(data != null)    {
             Writer out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(newfile), "UTF-8"));
             try {
@@ -504,7 +504,7 @@ public class PayloadFactory {
             } finally {
                 out.close();
             }
-
+            Log.d("PayloadFactory", "serializing:" + data);
         }
 
     }
@@ -517,11 +517,9 @@ public class PayloadFactory {
 
         BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(file), "UTF8"));
         String str = null;
-
         while((str = in.readLine()) != null) {
             sb.append(str);
         }
-
         in.close();
 
         JSONObject jsonObj = null;
@@ -531,6 +529,7 @@ public class PayloadFactory {
         catch(JSONException je)   {
             ;
         }
+        Log.d("PayloadFactory", "deserializing:" + sb.toString());
 
         return jsonObj;
     }
