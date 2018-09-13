@@ -23,6 +23,7 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.samourai.txtenna.R;
 import com.samourai.txtenna.utils.BroadcastLogUtil;
@@ -180,7 +181,20 @@ public class BroadCastLogsAdapter extends RecyclerView.Adapter<BroadCastLogsAdap
 
         holder.share.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                ;
+
+                String url = null;
+                if(entry.net.equalsIgnoreCase("t"))    {
+                    url = "https://testnet.smartbit.com.au/tx/" + entry.hash;
+                }
+                else    {
+                    url = "https://m.oxt.me/transaction/" + entry.hash;
+                }
+
+                android.content.ClipboardManager clipboard = (android.content.ClipboardManager) mContext.getSystemService(android.content.Context.CLIPBOARD_SERVICE);
+                android.content.ClipData clip = null;
+                clip = android.content.ClipData.newPlainText("url", url);
+                clipboard.setPrimaryClip(clip);
+                Toast.makeText(mContext, R.string.copied_to_clipboard, Toast.LENGTH_SHORT).show();
             }
         });
 
