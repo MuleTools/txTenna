@@ -184,6 +184,10 @@ public class BroadCastLogsAdapter extends RecyclerView.Adapter<BroadCastLogsAdap
             }
         });
 
+        if(!hasConnectivity(mContext))    {
+            holder.explore.setVisibility(View.GONE);
+        }
+
         holder.setExpandable();
         holder.setExpanded(View.VISIBLE);
 
