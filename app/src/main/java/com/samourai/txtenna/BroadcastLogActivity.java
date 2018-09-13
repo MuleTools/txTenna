@@ -7,7 +7,7 @@ import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 
-import com.samourai.txtenna.adapters.BroadCastLogsAdapter;
+import com.samourai.txtenna.adapters.BroadcastLogsAdapter;
 import com.samourai.txtenna.utils.BroadcastLogUtil;
 
 import org.apache.commons.io.IOUtils;
@@ -19,7 +19,7 @@ import java.net.URL;
 public class BroadcastLogActivity extends AppCompatActivity {
 
     private RecyclerView recyclerView;
-    private BroadCastLogsAdapter adapter = null;
+    private BroadcastLogsAdapter adapter = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,7 +27,7 @@ public class BroadcastLogActivity extends AppCompatActivity {
         setContentView(R.layout.activity_broadcast_log);
         recyclerView = findViewById(R.id.RVBroadCastLog);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new BroadCastLogsAdapter(this);
+        adapter = new BroadcastLogsAdapter(this);
         recyclerView.setAdapter(adapter);
 
         refreshData();

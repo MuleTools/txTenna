@@ -30,7 +30,7 @@ import com.samourai.txtenna.utils.BroadcastLogUtil;
 
 import java.text.SimpleDateFormat;
 
-public class BroadCastLogsAdapter extends RecyclerView.Adapter<BroadCastLogsAdapter.viewHolder> {
+public class BroadcastLogsAdapter extends RecyclerView.Adapter<BroadcastLogsAdapter.viewHolder> {
 
     private Context mContext;
 
@@ -77,7 +77,7 @@ public class BroadCastLogsAdapter extends RecyclerView.Adapter<BroadCastLogsAdap
 
     }
 
-    public BroadCastLogsAdapter(Context context) {
+    public BroadcastLogsAdapter(Context context) {
         mContext = context;
     }
 
