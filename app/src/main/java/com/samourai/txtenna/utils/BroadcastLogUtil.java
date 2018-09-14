@@ -112,6 +112,9 @@ public class BroadcastLogUtil {
     }
 
     public void fromJSON(JSONArray entries) {
+
+        broadcastLog.clear();
+
         try {
             for(int i = 0; i < entries.length(); i++) {
                 JSONObject obj = entries.getJSONObject(i);
