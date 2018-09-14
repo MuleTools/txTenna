@@ -15,6 +15,7 @@ import android.support.transition.Visibility;
 import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,6 +30,7 @@ import com.samourai.txtenna.R;
 import com.samourai.txtenna.utils.BroadcastLogUtil;
 
 import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class BroadcastLogsAdapter extends RecyclerView.Adapter<BroadcastLogsAdapter.viewHolder> {
 
@@ -155,7 +157,7 @@ public class BroadcastLogsAdapter extends RecyclerView.Adapter<BroadcastLogsAdap
         if(entry.confirmed && entry.ts != -1L)    {
 
             SimpleDateFormat df = new SimpleDateFormat("MMM dd, yyyy\nHH:mm");
-            String ts = df.format(entry.ts);
+            String ts = df.format(new Date(entry.ts * 1000L));
 
             holder.timeStamp.setText(ts);
         }
