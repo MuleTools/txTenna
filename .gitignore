@@ -37,3 +37,5 @@ app/staging/
 
 app/output.json
 
+app/src/main/java/com/samourai/txtenna/utils/goTennaUtil.java
+
