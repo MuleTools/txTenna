@@ -2,6 +2,7 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 26
+    flavorDimensions "versionCode"
     defaultConfig {
         applicationId "com.samourai.txtenna"
         minSdkVersion 16
@@ -24,6 +25,26 @@ android {
         // Or, if you prefer, you can continue to check for errors in release builds,
         // but continue the build even when errors are found:
         abortOnError false
+    }
+    productFlavors {
+        production {
+            applicationId 'com.samourai.txtenna'
+            minSdkVersion 16
+            targetSdkVersion 26
+            versionCode 1
+            versionName "0.01"
+            resValue "string", "app_name", "txTenna"
+            resValue "string", "version_name", "0.01"
+        }
+        staging {
+            applicationId 'com.samourai.txtenna.staging'
+            minSdkVersion 16
+            targetSdkVersion 26
+            versionCode 1
+            versionName "0.01"
+            resValue "string", "app_name", "txTenna Staging"
+            resValue "string", "version_name", "0.01"
+        }
     }
 }
 
