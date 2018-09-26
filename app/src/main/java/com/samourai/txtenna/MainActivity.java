@@ -37,11 +37,14 @@ import android.widget.Toast;
 import com.dm.zbar.android.scanner.ZBarConstants;
 import com.dm.zbar.android.scanner.ZBarScannerActivity;
 import com.google.gson.Gson;
+import com.gotenna.sdk.GoTenna;
+import com.gotenna.sdk.bluetooth.GTConnectionManager;
 import com.samourai.sms.SMSReceiver;
 import com.samourai.sms.SMSSender;
 import com.samourai.txtenna.payload.PayloadFactory;
 import com.samourai.txtenna.prefs.PrefsUtil;
 import com.samourai.txtenna.utils.BroadcastLogUtil;
+import com.samourai.txtenna.utils.goTennaUtil;
 import com.yanzhenjie.zbar.Symbol;
 
 import org.bitcoinj.core.Transaction;
@@ -59,6 +62,7 @@ public class MainActivity extends AppCompatActivity {
     private final static int SCAN_HEX_TX = 2011;
 
     private static final int SMS_PERMISSION_CODE = 0;
+    private static final int CAMERA_PERMISSION_CODE = 1;
 
     private LinearLayout BottomSheetMenu;
     private LinearLayout txTennaSelection;
@@ -123,8 +127,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 relayViaGoTenna = true;
-                Toast.makeText(MainActivity.this, R.string.txTenna_selection, Toast.LENGTH_SHORT).show();
                 bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+                doGetHex();
             }
         });
 
@@ -138,8 +142,16 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        if (!hasCameraPermission()) {
+            showRequestCameraPermissionInfoAlertDialog();
+        }
+
+        if (!hasCameraPermission()) {
+            showRequestCameraPermissionInfoAlertDialog();
+        }
+
         if (!hasReadSmsPermission() || !hasSendSmsPermission()) {
-            showRequestPermissionsInfoAlertDialog();
+            showRequestSMSPermissionInfoAlertDialog();
         }
 
         IntentFilter filter = new IntentFilter(ACTION_INTENT);
@@ -150,6 +162,12 @@ public class MainActivity extends AppCompatActivity {
         }
         catch(JSONException | IOException e) {
             e.printStackTrace();
+        }
+
+        goTennaUtil.getInstance(MainActivity.this).init();
+        Log.d("MainActivity", "checking connected address:" + goTennaUtil.getInstance().getGtConnectionManager().getConnectedGotennaAddress());
+        if(GoTenna.tokenIsVerified() && goTennaUtil.getInstance().isPaired())    {
+            goTennaUtil.getInstance().getGtConnectionManager().scanAndConnect(GTConnectionManager.GTDeviceType.MESH);
         }
 
     }
@@ -358,11 +376,34 @@ public class MainActivity extends AppCompatActivity {
         startActivityForResult(intent, SCAN_HEX_TX);
     }
 
-    private void showRequestPermissionsInfoAlertDialog() {
+    private void showRequestCameraPermissionInfoAlertDialog() {
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle(R.string.permission_alert_dialog_title);
-        builder.setMessage(R.string.permission_dialog_message);
+        builder.setTitle(R.string.permission_camera_alert_dialog_title);
+        builder.setMessage(R.string.permission_camera_dialog_message);
+        builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+                requestCameraPermission();
+            }
+        });
+        builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+
+        builder.show();
+
+    }
+
+    private void showRequestSMSPermissionInfoAlertDialog() {
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(R.string.permission_sms_alert_dialog_title);
+        builder.setMessage(R.string.permission_sms_dialog_message);
         builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
@@ -379,6 +420,10 @@ public class MainActivity extends AppCompatActivity {
 
         builder.show();
 
+    }
+
+    private boolean hasCameraPermission() {
+        return ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED;
     }
 
     private boolean hasReadSmsPermission() {
@@ -398,6 +443,18 @@ public class MainActivity extends AppCompatActivity {
         }
 
         ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.SEND_SMS, Manifest.permission.READ_SMS}, SMS_PERMISSION_CODE);
+
+    }
+
+    private void requestCameraPermission() {
+
+        if (ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this, Manifest.permission.CAMERA)
+                ) {
+            Log.d("MainActivity", "shouldShowRequestPermissionRationale(), no permission requested");
+            return;
+        }
+
+        ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.CAMERA}, CAMERA_PERMISSION_CODE);
 
     }
 
@@ -428,7 +485,7 @@ public class MainActivity extends AppCompatActivity {
                     dialog.dismiss();
 
                     List<String> payload  = PayloadFactory.getInstance(MainActivity.this).toJSON(hexTx, relayViaGoTenna);
-                    PayloadFactory.getInstance(MainActivity.this).relayPayload(payload);
+                    PayloadFactory.getInstance(MainActivity.this).relayPayload(payload, relayViaGoTenna);
                     relayViaGoTenna = null;
 
                 }
@@ -449,7 +506,7 @@ public class MainActivity extends AppCompatActivity {
                     dialog.dismiss();
 
                     List<String> payload  = PayloadFactory.getInstance(MainActivity.this).toJSON(hexTx, true);
-                    PayloadFactory.getInstance(MainActivity.this).relayPayload(payload);
+                    PayloadFactory.getInstance(MainActivity.this).relayPayload(payload, true);
                     relayViaGoTenna = null;
 
                 }
@@ -469,7 +526,7 @@ public class MainActivity extends AppCompatActivity {
                     dialog.dismiss();
 
                     List<String> payload  = PayloadFactory.getInstance(MainActivity.this).toJSON(hexTx, false);
-                    PayloadFactory.getInstance(MainActivity.this).relayPayload(payload);
+                    PayloadFactory.getInstance(MainActivity.this).relayPayload(payload, false);
                     relayViaGoTenna = null;
 
                 }

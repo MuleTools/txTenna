@@ -3,8 +3,11 @@
     <string name="about_us">About txTenna</string>
     <string name="about_title">About us</string>
 
-    <string name="permission_alert_dialog_title">Requesting SMS permission</string>
-    <string name="permission_dialog_message">The app will now request your permission to send and read SMS related services.</string>
+    <string name="permission_camera_alert_dialog_title">Requesting camera permission</string>
+    <string name="permission_camera_dialog_message">The app will now request your permission to use your camera for scanning QR codes.</string>
+
+    <string name="permission_sms_alert_dialog_title">Requesting SMS permission</string>
+    <string name="permission_sms_dialog_message">The app will now request your permission to send and read SMS related services.</string>
 
     <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
@@ -22,7 +25,7 @@
     <string name="options_txtenna">txTenna relay</string>
     <string name="options_txtenna2">URL of txTenna endpoint</string>
     <string name="options_mainnet">MainNet</string>
-    <string name="options_mainnet2">Use MainNet for relayed transactions (uncheck to use TestNet)</string>
+    <string name="options_mainnet2">Use MainNet for relaying transactions (uncheck to use TestNet)</string>
     <string name="options_z85">Use Z85 encoding</string>
     <string name="options_z85_2">Save space by encoding transaction bytes in Z85</string>
     <string name="use_intl_format">Use international dialing format. Ex.:\'+447385555555\'</string>
@@ -61,5 +64,13 @@
     <string name="received_via_sms">Received via SMS</string>
 
     <string name="copied_to_clipboard">Copied to clipboard</string>
+
+    <string name="pair_device">Pair device</string>
+    <string name="unpair_device">Unpair device</string>
+    <string name="get_mesh_device">Get Mesh Device</string>
+    <string name="no_mesh_device_detected">No mesh device detected</string>
+    <string name="rescan_or_buy">Turn on your GoTenna Mesh and rescan or buy a GoTenna Mesh device</string>
+    <string name="mesh_device_detected">Mesh device detected</string>
+    <string name="mesh_device_detected2">Connected to GoTenna Mesh</string>
 
 </resources>

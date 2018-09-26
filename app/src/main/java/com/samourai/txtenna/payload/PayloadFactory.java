@@ -11,6 +11,7 @@ import com.google.gson.GsonBuilder;
 
 import com.samourai.sms.SMSSender;
 import com.samourai.txtenna.R;
+import com.samourai.txtenna.SendMessageInteractor;
 import com.samourai.txtenna.utils.BroadcastLogUtil;
 import com.samourai.txtenna.utils.Z85;
 import com.samourai.txtenna.prefs.PrefsUtil;
@@ -318,7 +319,10 @@ public class PayloadFactory {
 
     }
 
-    public void relayPayload(final List<String> payload)   {
+    public void relayPayload(final List<String> payload, final boolean isGoTenna)   {
+
+        final long smsDelay = 5000L;
+        final long goTennaDelay = 15000L;
 
         final Handler handler = new Handler();
 
@@ -334,8 +338,15 @@ public class PayloadFactory {
 
                     final int ii = i + 1;
 
-                    SMSSender.getInstance(context).send(s, PrefsUtil.getInstance(context).getValue(PrefsUtil.SMS_RELAY, context.getString(R.string.default_relay)));
-                    Log.d("PayloadFactory", "sent:" + s);
+                    if(isGoTenna)    {
+                        SendMessageInteractor smi = new SendMessageInteractor();
+                        smi.sendBroadcast(s);
+                        Log.d("PayloadFactory", "relayed:" + s);
+                    }
+                    else    {
+                        SMSSender.getInstance(context).send(s, PrefsUtil.getInstance(context).getValue(PrefsUtil.SMS_RELAY, context.getString(R.string.default_relay)));
+                        Log.d("PayloadFactory", "relayed:" + s);
+                    }
 
                     handler.post(new Runnable() {
                         @Override
@@ -345,7 +356,7 @@ public class PayloadFactory {
                     });
 
                     try {
-                        Thread.sleep(5000L);
+                        Thread.sleep(isGoTenna ? goTennaDelay : smsDelay);
                     }
                     catch(Exception e) {
                         ;
@@ -353,7 +364,7 @@ public class PayloadFactory {
 
                 }
 
-                BroadcastLogUtil.getInstance().add(payload.get(0), true, false);
+                BroadcastLogUtil.getInstance().add(payload.get(0), true, isGoTenna);
 
                 Looper.loop();
 
