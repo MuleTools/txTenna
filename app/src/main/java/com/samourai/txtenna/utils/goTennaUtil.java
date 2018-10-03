@@ -14,7 +14,7 @@ public class goTennaUtil {
     private static BluetoothAdapterManager bluetoothAdapterManager = null;
     private static GTConnectionManager gtConnectionManager = null;
 
-    private static final String GOTENNA_APP_TOKEN = "FgATUR5TB0AGCBVPBRUfRQcLAE5DDlgOBBAOAQkLH1AZGFNIRkZMWlUBRgUCR05V"; // TODO: Insert your token
+    private static final String GOTENNA_APP_TOKEN = ""; // TODO: Insert your token
 
     private static goTennaUtil instance = null;
 
@@ -25,15 +25,6 @@ public class goTennaUtil {
     public static goTennaUtil getInstance(Context ctx) {
 
         context = ctx;
-
-        if(instance == null) {
-            instance = new goTennaUtil();
-        }
-
-        return instance;
-    }
-
-    public static goTennaUtil getInstance() {
 
         if(instance == null) {
             instance = new goTennaUtil();
@@ -59,7 +50,7 @@ public class goTennaUtil {
 
     public void init() {
         try {
-            GoTenna.setApplicationToken(context.getApplicationContext(), goTennaUtil.getInstance().getAppToken());
+            GoTenna.setApplicationToken(context.getApplicationContext(), goTennaUtil.getInstance(context).getAppToken());
             if(GoTenna.tokenIsVerified())    {
                 gtConnectionManager = GTConnectionManager.getInstance();
                 Log.d("goTennaUtil", "goTenna token is verified:" + GoTenna.tokenIsVerified());
