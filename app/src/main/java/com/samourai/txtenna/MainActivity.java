@@ -10,13 +10,18 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.annotation.NonNull;
+import android.support.constraint.Group;
 import android.support.design.widget.BottomSheetBehavior;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.InputType;
@@ -43,23 +48,32 @@ import com.gotenna.sdk.interfaces.GTErrorListener;
 import com.gotenna.sdk.responses.GTResponse;
 import com.gotenna.sdk.types.GTDataTypes;
 import com.samourai.sms.SMSReceiver;
+import com.samourai.txtenna.adapters.BroadcastLogsAdapter;
 import com.samourai.txtenna.payload.PayloadFactory;
 import com.samourai.txtenna.prefs.PrefsUtil;
+import com.samourai.txtenna.utils.BroadcastLogUtil;
 import com.samourai.txtenna.utils.IncomingMessagesManager;
 import com.samourai.txtenna.utils.goTennaUtil;
 import com.yanzhenjie.zbar.Symbol;
 
+import org.apache.commons.io.IOUtils;
 import org.bitcoinj.core.Transaction;
 import org.bitcoinj.core.VerificationException;
 import org.bitcoinj.params.MainNetParams;
 import org.bitcoinj.params.TestNet3Params;
 import org.bouncycastle.util.encoders.Hex;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.security.SecureRandom;
 import java.util.List;
 import java.util.UUID;
+
+import java.net.HttpURLConnection;
+import java.net.URL;
+
 
 public class MainActivity extends AppCompatActivity {
 
@@ -67,12 +81,14 @@ public class MainActivity extends AppCompatActivity {
 
     private static final int SMS_PERMISSION_CODE = 0;
     private static final int CAMERA_PERMISSION_CODE = 1;
-
+    private Group emptyView;
     private LinearLayout BottomSheetMenu;
     private LinearLayout txTennaSelection;
     private LinearLayout smsSelection;
     private BottomSheetBehavior bottomSheetBehavior;
     private FloatingActionButton fab;
+    private RecyclerView recyclerView;
+    private BroadcastLogsAdapter adapter = null;
 
     private IntentFilter isFilter = null;
     private BroadcastReceiver isReceiver = null;
@@ -113,12 +129,20 @@ public class MainActivity extends AppCompatActivity {
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
+        emptyView = findViewById(R.id.emptyView);
         fab = findViewById(R.id.fab);
         BottomSheetMenu = findViewById(R.id.fab_bottom_sheet);
         bottomSheetBehavior = BottomSheetBehavior.from(BottomSheetMenu);
         bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
         bottomSheetBehavior.setBottomSheetCallback(bottomSheetCallback);
+
+        recyclerView = findViewById(R.id.RVBroadCastLog);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        adapter = new BroadcastLogsAdapter(this);
+        recyclerView.setAdapter(adapter);
+
+        refreshData();
+
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -149,6 +173,7 @@ public class MainActivity extends AppCompatActivity {
                 doGetHex();
             }
         });
+
 
         if (!hasCameraPermission()) {
             showRequestCameraPermissionInfoAlertDialog();
@@ -346,26 +371,116 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    private void refreshData() {
+
+        if (BroadcastLogUtil.getInstance().getBroadcastLog().size() == 0) {
+            recyclerView.setVisibility(View.GONE);
+            emptyView.setVisibility(View.VISIBLE);
+            return;
+        }else {
+            recyclerView.setVisibility(View.VISIBLE);
+            emptyView.setVisibility(View.GONE);
+        }
+
+        final Handler handler = new Handler();
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+
+                Looper.prepare();
+
+                for (int i = 0; i < BroadcastLogUtil.getInstance().getBroadcastLog().size(); i++) {
+
+                    if (!BroadcastLogUtil.getInstance().getBroadcastLog().get(i).confirmed || BroadcastLogUtil.getInstance().getBroadcastLog().get(i).ts < 0L) {
+
+                        try {
+                            String URL = null;
+                            if (BroadcastLogUtil.getInstance().getBroadcastLog().get(i).net.equalsIgnoreCase("t")) {
+                                URL = "https://api.samourai.io/test/v2/tx/" + BroadcastLogUtil.getInstance().getBroadcastLog().get(i).hash;
+                            } else {
+                                URL = "https://api.samourai.io/v2/tx/" + BroadcastLogUtil.getInstance().getBroadcastLog().get(i).hash;
+                            }
+                            URL url = new URL(URL);
+
+                            String result = null;
+                            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+
+                            try {
+                                connection.setRequestMethod("GET");
+                                connection.setRequestProperty("charset", "utf-8");
+                                connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1650.57 Safari/537.36");
+
+                                connection.setConnectTimeout(60000);
+                                connection.setReadTimeout(60000);
+
+                                connection.setInstanceFollowRedirects(false);
+
+                                connection.connect();
+
+                                if (connection.getResponseCode() == 200) {
+                                    result = IOUtils.toString(connection.getInputStream(), "UTF-8");
+                                    JSONObject obj = new JSONObject(result);
+                                    if (obj != null && obj.has("block")) {
+
+                                        JSONObject bObj = obj.getJSONObject("block");
+                                        if (bObj.has("height") && bObj.has("time")) {
+                                            BroadcastLogUtil.getInstance().getBroadcastLog().get(i).confirmed = true;
+                                            BroadcastLogUtil.getInstance().getBroadcastLog().get(i).ts = bObj.getLong("time");
+                                        }
+
+                                        handler.post(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                adapter.notifyDataSetChanged();
+                                            }
+                                        });
+
+                                    }
+
+                                }
+
+                                Thread.sleep(250);
+
+                            } finally {
+                                connection.disconnect();
+                            }
+
+                        } catch (Exception e) {
+                            ;
+                        }
+
+                    }
+
+                }
+
+                Looper.loop();
+
+            }
+        }).start();
+
+    }
+
+
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
 
-        if(resultCode == Activity.RESULT_OK && requestCode == SCAN_HEX_TX)	{
+        if (resultCode == Activity.RESULT_OK && requestCode == SCAN_HEX_TX) {
 
-            if(data != null && data.getStringExtra(ZBarConstants.SCAN_RESULT) != null)	{
+            if (data != null && data.getStringExtra(ZBarConstants.SCAN_RESULT) != null) {
 
                 final String strResult = data.getStringExtra(ZBarConstants.SCAN_RESULT).trim();
 
                 doSendHex(strResult);
 
             }
-        }
-        else {
+        } else {
             ;
         }
 
     }
 
-    private void doGetHex()    {
+    private void doGetHex() {
 
         final EditText edHexTx = new EditText(MainActivity.this);
         edHexTx.setSingleLine(false);
