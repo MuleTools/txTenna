@@ -112,7 +112,7 @@ public class SettingsActivity extends PreferenceActivity {
             public boolean onPreferenceClick(Preference preference) {
 
                 new AlertDialog.Builder(SettingsActivity.this)
-                        .setIcon(R.mipmap.ic_launcher)
+                        .setIcon(R.mipmap.ic_launcher_round)
                         .setTitle(R.string.app_name)
                         .setMessage(getText(R.string.app_name) + ", " + getText(R.string.version_name))
                         .setCancelable(false)
