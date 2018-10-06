@@ -60,7 +60,7 @@ public class SettingsActivity extends PreferenceActivity {
                 return true;
             }
         });
-
+/*
         final EditTextPreference pushTxPref = (EditTextPreference) findPreference("pushTx");
         pushTxPref.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
             public boolean onPreferenceChange(Preference preference, Object newValue) {
@@ -76,7 +76,7 @@ public class SettingsActivity extends PreferenceActivity {
                 return true;
             }
         });
-
+*/
         final CheckBoxPreference cbMainNet = (CheckBoxPreference) findPreference("mainNet");
         cbMainNet.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
             public boolean onPreferenceChange(Preference preference, Object newValue) {

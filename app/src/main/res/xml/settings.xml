@@ -14,14 +14,14 @@
         android:key="smsRelay"
         android:defaultValue="@string/default_relay"
         />
-
+<!--
     <EditTextPreference
         android:title="@string/options_pushtx"
         android:summary="@string/options_pushtx2"
         android:key="pushTx"
         android:defaultValue="@string/default_pushtx"
         />
-
+-->
     <CheckBoxPreference
         android:title="@string/options_mainnet"
         android:summary="@string/options_mainnet2"

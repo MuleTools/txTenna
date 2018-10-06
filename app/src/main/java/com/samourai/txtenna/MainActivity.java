@@ -10,8 +10,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomSheetBehavior;
 import android.support.design.widget.FloatingActionButton;
@@ -27,7 +25,6 @@ import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -36,14 +33,19 @@ import android.widget.Toast;
 
 import com.dm.zbar.android.scanner.ZBarConstants;
 import com.dm.zbar.android.scanner.ZBarScannerActivity;
-import com.google.gson.Gson;
 import com.gotenna.sdk.GoTenna;
 import com.gotenna.sdk.bluetooth.GTConnectionManager;
+import com.gotenna.sdk.commands.GTCommand;
+import com.gotenna.sdk.commands.GTCommandCenter;
+import com.gotenna.sdk.commands.GTError;
+import com.gotenna.sdk.commands.Place;
+import com.gotenna.sdk.interfaces.GTErrorListener;
+import com.gotenna.sdk.responses.GTResponse;
+import com.gotenna.sdk.types.GTDataTypes;
 import com.samourai.sms.SMSReceiver;
-import com.samourai.sms.SMSSender;
 import com.samourai.txtenna.payload.PayloadFactory;
 import com.samourai.txtenna.prefs.PrefsUtil;
-import com.samourai.txtenna.utils.BroadcastLogUtil;
+import com.samourai.txtenna.utils.IncomingMessagesManager;
 import com.samourai.txtenna.utils.goTennaUtil;
 import com.yanzhenjie.zbar.Symbol;
 
@@ -55,7 +57,9 @@ import org.bouncycastle.util.encoders.Hex;
 import org.json.JSONException;
 
 import java.io.IOException;
+import java.security.SecureRandom;
 import java.util.List;
+import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -102,10 +106,14 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_main);
+
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
         fab = findViewById(R.id.fab);
         BottomSheetMenu = findViewById(R.id.fab_bottom_sheet);
         bottomSheetBehavior = BottomSheetBehavior.from(BottomSheetMenu);
@@ -165,9 +173,56 @@ public class MainActivity extends AppCompatActivity {
         }
 
         goTennaUtil.getInstance(MainActivity.this).init();
-        Log.d("MainActivity", "checking connected address:" + goTennaUtil.getInstance().getGtConnectionManager().getConnectedGotennaAddress());
-        if(GoTenna.tokenIsVerified() && goTennaUtil.getInstance().isPaired())    {
-            goTennaUtil.getInstance().getGtConnectionManager().scanAndConnect(GTConnectionManager.GTDeviceType.MESH);
+        Log.d("MainActivity", "checking connected address:" + goTennaUtil.getInstance(MainActivity.this).getGtConnectionManager().getConnectedGotennaAddress());
+
+        if(GoTenna.tokenIsVerified() && goTennaUtil.getInstance(MainActivity.this).isPaired())    {
+
+            GTCommandCenter.getInstance().sendSetGeoRegion(Place.EUROPE, new GTCommand.GTCommandResponseListener()
+            {
+                @Override
+                public void onResponse(GTResponse response)
+                {
+                    if (response.getResponseCode() == GTDataTypes.GTCommandResponseCode.POSITIVE)
+                    {
+                        Log.d("MainActivity", "GID set OK");
+                    }
+                    else
+                    {
+                        Log.d("MainActivity", "GID set OK:" + response.toString());
+                    }
+                }
+            }, new GTErrorListener()
+            {
+                @Override
+                public void onError(GTError error)
+                {
+                    Log.d("MainActivity", error.toString() + "," + error.getCode());
+                }
+            });
+
+            GTCommandCenter.getInstance().setGoTennaGID(new SecureRandom().nextLong(), UUID.randomUUID().toString(), new GTErrorListener()
+            {
+                @Override
+                public void onError(GTError error)
+                {
+                    Log.d("MainActivity", error.toString() + "," + error.getCode());
+                }
+            });
+            goTennaUtil.getInstance(MainActivity.this).getGtConnectionManager().scanAndConnect(GTConnectionManager.GTDeviceType.MESH);
+
+            IncomingMessagesManager.getInstance(MainActivity.this.getApplicationContext()).startListening();
+
+        }
+
+        String action = getIntent().getAction();
+        String scheme = getIntent().getScheme();
+        if(action != null && action.equals("com.samourai.txtenna.HEX")) {
+            String hex = getIntent().getStringExtra(Intent.EXTRA_TEXT);
+            Log.d("MainActivity", "hex:" + hex);
+            if(hex != null && hex.length() > 0 && hex.matches("^[0-9A-Fa-f]+$"))    {
+                relayViaGoTenna = null;
+                doSendHex(hex);
+            }
         }
 
     }
@@ -283,6 +338,7 @@ public class MainActivity extends AppCompatActivity {
             return true;
         }
         if (id == R.id.qr_scan) {
+            relayViaGoTenna = null;
             doScanHexTx();
             return true;
         }
@@ -341,6 +397,7 @@ public class MainActivity extends AppCompatActivity {
                     public void onClick(DialogInterface dialog, int whichButton) {
 
                         dialog.dismiss();
+                        relayViaGoTenna = null;
 
                         final String strHexTx = edHexTx.getText().toString().trim();
 
@@ -361,6 +418,7 @@ public class MainActivity extends AppCompatActivity {
                     public void onClick(DialogInterface dialog, int whichButton) {
 
                         dialog.dismiss();
+                        relayViaGoTenna = null;
 
                         doScanHexTx();
                     }
@@ -495,6 +553,7 @@ public class MainActivity extends AppCompatActivity {
                 public void onClick(DialogInterface dialog, int whichButton) {
 
                     dialog.dismiss();
+                    relayViaGoTenna = null;
 
                 }
             });
@@ -516,6 +575,7 @@ public class MainActivity extends AppCompatActivity {
                 public void onClick(DialogInterface dialog, int whichButton) {
 
                     dialog.dismiss();
+                    relayViaGoTenna = null;
 
                 }
 

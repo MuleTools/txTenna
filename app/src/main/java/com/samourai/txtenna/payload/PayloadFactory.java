@@ -9,10 +9,13 @@ import android.widget.Toast;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import com.gotenna.sdk.gids.GIDManager;
 import com.samourai.sms.SMSSender;
+import com.samourai.txtenna.utils.Message;
 import com.samourai.txtenna.R;
-import com.samourai.txtenna.SendMessageInteractor;
+import com.samourai.txtenna.utils.SendMessageInteractor;
 import com.samourai.txtenna.utils.BroadcastLogUtil;
+import com.samourai.txtenna.utils.SentTxUtil;
 import com.samourai.txtenna.utils.Z85;
 import com.samourai.txtenna.prefs.PrefsUtil;
 
@@ -40,8 +43,15 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
+
+import ch.boye.httpclientandroidlib.HttpResponse;
+import ch.boye.httpclientandroidlib.client.HttpClient;
+import ch.boye.httpclientandroidlib.client.methods.HttpPost;
+import ch.boye.httpclientandroidlib.entity.StringEntity;
+import ch.boye.httpclientandroidlib.impl.client.HttpClientBuilder;
 
 public class PayloadFactory {
 
@@ -65,8 +75,8 @@ public class PayloadFactory {
     private static final int smsSegment0Len = 40;
     private static final int smsSegment1Len = 120;
 
-    private static final int goTennaSegment0Len = 110;
-    private static final int goTennaSegment1Len = 190;
+    private static final int goTennaSegment0Len = 100;  // 110?
+    private static final int goTennaSegment1Len = 180;  // 190?
 
     private static int messageIdx = 0;
 
@@ -340,12 +350,29 @@ public class PayloadFactory {
 
                     if(isGoTenna)    {
                         SendMessageInteractor smi = new SendMessageInteractor();
-                        smi.sendBroadcast(s);
-                        Log.d("PayloadFactory", "relayed:" + s);
+
+                        Message messageToSend = Message.createReadyToSendMessage(new SecureRandom().nextLong(),
+                                GIDManager.SHOUT_GID,
+                                s);
+
+                        smi.sendBroadcastMessage(messageToSend,
+                                new SendMessageInteractor.SendMessageListener()
+                                {
+                                    @Override
+                                    public void onMessageResponseReceived()
+                                    {
+                                        Log.d("PayloadFactory", "response received:" + ii);
+                                        registerSent(s);
+
+                                    }
+
+                                });
+
+                        Log.d("PayloadFactory", "goTenna relayed:" + s);
                     }
                     else    {
                         SMSSender.getInstance(context).send(s, PrefsUtil.getInstance(context).getValue(PrefsUtil.SMS_RELAY, context.getString(R.string.default_relay)));
-                        Log.d("PayloadFactory", "relayed:" + s);
+                        Log.d("PayloadFactory", "sms relayed:" + s);
                     }
 
                     handler.post(new Runnable() {
@@ -387,10 +414,10 @@ public class PayloadFactory {
                 Looper.prepare();
 
                 String response = null;
-                String api = useMainNet ? "v2/pushtx/" : "test/v2/pushtx/";
+                String url = (useMainNet) ? context.getText(R.string.default_pushtx_mainnet).toString() : context.getText(R.string.default_pushtx_testnet).toString();
 
                 try {
-                    response = postURL(null, "https://api.samouraiwallet.com/" + api, "tx=" + txHex);
+                    response = postURL(null, url, "tx=" + txHex);
                 }
                 catch(Exception e) {
                     Log.d("PayloadFactory", e.getMessage());
@@ -423,6 +450,70 @@ public class PayloadFactory {
                 */
 
                 BroadcastLogUtil.getInstance().add(payload.get(0), false, goTenna);
+
+                Looper.loop();
+
+            }
+        }).start();
+
+    }
+
+    public void uploadSegment(final String segment)   {
+
+        final Handler handler = new Handler();
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+
+                Looper.prepare();
+
+                HttpResponse response = null;
+
+                try {
+
+                    String postUrl = context.getText(R.string.default_txtenna).toString();
+                    HttpClient httpClient = HttpClientBuilder.create().build();
+                    HttpPost post = new HttpPost(postUrl);
+                    StringEntity postingString = new StringEntity(segment);
+                    post.setEntity(postingString);
+                    post.setHeader("Content-type", "application/json");
+                    response = httpClient.execute(post);
+                    Log.d("PayloadFactory", "HTTP POST return:" + response.getStatusLine().getStatusCode());
+                    if(response.getStatusLine().getStatusCode() == 200)    {
+                        registerSent(segment);
+                    }
+
+                }
+                catch(Exception e) {
+                    Log.d("PayloadFactory", e.getMessage());
+                    e.printStackTrace();
+//                    response = e.getMessage();
+                }
+
+                final String _response = Integer.toString(response.getStatusLine().getStatusCode());
+
+                Log.d("PayloadFactory", _response);
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(context, _response + ":" + segment, Toast.LENGTH_SHORT).show();
+                    }
+                });
+
+                /*
+                final String _response = response;
+
+                Handler handler = new Handler();
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        Intent intent = new Intent("com.samourai.ponydirect.LOG");
+                        intent.putExtra("msg", context.getText(R.string.broadcasted) + ":" + _response);
+                        LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+                    }
+                });
+                */
 
                 Looper.loop();
 
@@ -543,6 +634,27 @@ public class PayloadFactory {
         Log.d("PayloadFactory", "deserializing:" + sb.toString());
 
         return jsonObj;
+    }
+
+    private void registerSent(String s) {
+
+        try {
+            JSONObject obj = new JSONObject(s);
+            if(obj.has("i"))    {
+                String id = obj.getString("i");
+                if(obj.has("c"))    {
+                    SentTxUtil.getInstance().add(id, obj.getInt("c"));
+                }
+                else    {
+                    SentTxUtil.getInstance().add(id, 0);
+                }
+
+            }
+        }
+        catch(JSONException je) {
+            ;
+        }
+
     }
 
 }

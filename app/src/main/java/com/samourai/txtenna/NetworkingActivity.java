@@ -17,16 +17,8 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.gotenna.sdk.GoTenna;
-import com.gotenna.sdk.commands.GTCommandCenter;
-import com.gotenna.sdk.exceptions.GTInvalidAppTokenException;
 import com.samourai.txtenna.prefs.PrefsUtil;
 
-import com.gotenna.sdk.bluetooth.BluetoothAdapterManager;
-import com.gotenna.sdk.bluetooth.BluetoothAdapterManager.BluetoothStatus;
-import com.gotenna.sdk.bluetooth.GTConnectionManager;
-import com.gotenna.sdk.bluetooth.GTConnectionManager.GTConnectionListener;
-import com.gotenna.sdk.bluetooth.GTConnectionManager.GTConnectionState;
 import com.gotenna.sdk.bluetooth.GTConnectionManager.GTDeviceType;
 import com.samourai.txtenna.utils.goTennaUtil;
 
@@ -93,9 +85,9 @@ public class NetworkingActivity extends AppCompatActivity {
             public void onClick(View view) {
 
                 if(goTennaUtil.getInstance(NetworkingActivity.this).isPaired())    {
-                    goTennaUtil.getInstance().getGtConnectionManager().disconnect();
-                    goTennaUtil.getInstance().getGtConnectionManager().clearConnectedGotennaAddress();
-                    goTennaUtil.getInstance().getGtConnectionManager().scanAndConnect(GTDeviceType.MESH);
+                    goTennaUtil.getInstance(NetworkingActivity.this).getGtConnectionManager().disconnect();
+                    goTennaUtil.getInstance(NetworkingActivity.this).getGtConnectionManager().clearConnectedGotennaAddress();
+                    goTennaUtil.getInstance(NetworkingActivity.this).getGtConnectionManager().scanAndConnect(GTDeviceType.MESH);
                     btRescan.setText(R.string.pair_device);
                     mesh_card_detail.setText(R.string.rescan_or_buy);
                     mesh_card_detail_title.setText(R.string.mesh_device_detected);
@@ -111,16 +103,16 @@ public class NetworkingActivity extends AppCompatActivity {
 
                     if(hasLocationpermission() && hasBluetoothPermisson())    {
 //                        GTCommandCenter.getInstance().setGoTennaGID(1111111111L, "txTenna", null);
-                        if(goTennaUtil.getInstance().isPaired())    {
-                            Log.d("NetworkingActivity", "existing connected address:" + goTennaUtil.getInstance().getGtConnectionManager().getConnectedGotennaAddress());
+                        if(goTennaUtil.getInstance(NetworkingActivity.this).isPaired())    {
+                            Log.d("NetworkingActivity", "existing connected address:" + goTennaUtil.getInstance(NetworkingActivity.this).getGtConnectionManager().getConnectedGotennaAddress());
                             String device = getText(R.string.mesh_device_detected2) + ": " + goTennaUtil.getInstance(NetworkingActivity.this).getGtConnectionManager().getConnectedGotennaAddress();
                             btRescan.setText(R.string.pair_device);
                             mesh_card_detail.setText(device);
                             mesh_card_detail_title.setText(R.string.mesh_device_detected);
                         }
                         else    {
-                            goTennaUtil.getInstance().getGtConnectionManager().scanAndConnect(GTDeviceType.MESH);
-                            Log.d("NetworkingActivity", "connected address:" + goTennaUtil.getInstance().getGtConnectionManager().getConnectedGotennaAddress());
+                            goTennaUtil.getInstance(NetworkingActivity.this).getGtConnectionManager().scanAndConnect(GTDeviceType.MESH);
+                            Log.d("NetworkingActivity", "connected address:" + goTennaUtil.getInstance(NetworkingActivity.this).getGtConnectionManager().getConnectedGotennaAddress());
                             btRescan.setText(R.string.unpair_device);
                             mesh_card_detail.setText(R.string.rescan_or_buy);
                             mesh_card_detail_title.setText(R.string.mesh_device_detected);

@@ -30,8 +30,9 @@
     <string name="options_z85_2">Save space by encoding transaction bytes in Z85</string>
     <string name="use_intl_format">Use international dialing format. Ex.:\'+447385555555\'</string>
     <string name="default_relay">+447490741539</string>
-    <string name="default_pushtx">https://api.samouraiwallet.com/v2/pushTx</string>
-    <string name="default_txtenna">https://api.samouraiwallet.com/v2/txTenna/segments</string>
+    <string name="default_pushtx_mainnet">https://api.samouraiwallet.com/v2/pushTx</string>
+    <string name="default_pushtx_testnet">https://api.samouraiwallet.com/test/v2/pushTx</string>
+    <string name="default_txtenna">https://api.samouraiwallet.com/v2/txtenna/segments</string>
     <string name="invalid_url">Invalid URL</string>
 
     <string name="muletools">MuleTools</string>
