@@ -141,8 +141,6 @@ public class MainActivity extends AppCompatActivity {
         adapter = new BroadcastLogsAdapter(this);
         recyclerView.setAdapter(adapter);
 
-        refreshData();
-
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -249,6 +247,8 @@ public class MainActivity extends AppCompatActivity {
                 doSendHex(hex);
             }
         }
+
+        refreshData();
 
     }
 
