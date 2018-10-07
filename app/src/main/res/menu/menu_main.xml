@@ -22,10 +22,4 @@
         android:title="@string/menu_network"
         app:showAsAction="always" />
 
-    <item
-        android:id="@+id/broadcastlog"
-        android:orderInCategory="100"
-        android:title="Broadcast Log"
-        app:showAsAction="never" />
-
 </menu>

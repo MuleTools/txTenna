@@ -41,10 +41,7 @@
             android:name=".NetworkingActivity"
             android:label="@string/networking"
             android:parentActivityName=".MainActivity" />
-        <activity
-            android:name=".BroadcastLogActivity"
-            android:label="@string/broadcast_log"
-            android:parentActivityName=".MainActivity" />
+
         <activity
             android:name=".SettingsActivity"
             android:label="@string/settings"

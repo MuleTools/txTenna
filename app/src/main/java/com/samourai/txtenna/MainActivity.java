@@ -354,10 +354,6 @@ public class MainActivity extends AppCompatActivity {
             startActivity(new Intent(this, SettingsActivity.class));
             return true;
         }
-        if (id == R.id.broadcastlog) {
-            startActivity(new Intent(this, BroadcastLogActivity.class));
-            return true;
-        }
         if (id == R.id.networkmenu) {
             startActivity(new Intent(this, NetworkingActivity.class));
             return true;
