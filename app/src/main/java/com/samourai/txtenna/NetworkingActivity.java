@@ -1,7 +1,9 @@
 package com.samourai.txtenna;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.support.constraint.Group;
 import android.support.transition.ChangeBounds;
 import android.support.transition.TransitionManager;
@@ -59,7 +61,8 @@ public class NetworkingActivity extends AppCompatActivity {
         btGetMesh.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                ;
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.gotenna.com/discount/SAMOURAI"));
+                startActivity(browserIntent);
             }
         });
 
