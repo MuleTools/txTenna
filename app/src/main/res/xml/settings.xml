@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <EditTextPreference
+        android:title="@string/options_txtenna"
+        android:summary="@string/options_txtenna2"
+        android:key="txTenna"
+        android:defaultValue="@string/default_txtenna"
+        />
+
+    <EditTextPreference
+        android:title="@string/options_telno"
+        android:summary="@string/options_telno2"
+        android:key="smsRelay"
+        android:defaultValue="@string/default_relay"
+        />
+<!--
+    <EditTextPreference
+        android:title="@string/options_pushtx"
+        android:summary="@string/options_pushtx2"
+        android:key="pushTx"
+        android:defaultValue="@string/default_pushtx"
+        />
+-->
+    <CheckBoxPreference
+        android:title="@string/options_mainnet"
+        android:summary="@string/options_mainnet2"
+        android:defaultValue="true"
+        android:key="mainNet"
+        />
+
+    <CheckBoxPreference
+        android:title="@string/options_z85"
+        android:summary="@string/options_z85_2"
+        android:defaultValue="false"
+        android:key="z85"
+        />
+
+    <Preference
+        android:title="@string/options_region"
+        android:summary="@string/options_region2"
+        android:key="region"
+        />
+
+    <Preference
+        android:title="@string/options_clearlogs"
+        android:summary="@string/options_clearlogs2"
+        android:key="clearlogs"
+        />
+
+    <Preference
+        android:title="@string/about_us"
+        android:summary="@string/about_us"
+        android:key="about"
+        />
+
+</PreferenceScreen>

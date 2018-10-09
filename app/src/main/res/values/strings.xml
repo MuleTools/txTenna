@@ -1,0 +1,84 @@
+<resources>
+    <string name="action_settings">Settings</string>
+    <string name="about_us">About txTenna</string>
+    <string name="about_title">About us</string>
+
+    <string name="permission_camera_alert_dialog_title">Requesting camera permission</string>
+    <string name="permission_camera_dialog_message">The app will now request your permission to use your camera for scanning QR codes.</string>
+
+    <string name="permission_sms_alert_dialog_title">Requesting SMS permission</string>
+    <string name="permission_sms_dialog_message">The app will now request your permission to send and read SMS related services.</string>
+
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+    <string name="yes">Yes</string>
+    <string name="close">Close</string>
+    <string name="gotenna_mesh">GoTenna Mesh</string>
+    <string name="sms_broadcast">SMS Broadcast</string>
+    <string name="networking">Networking</string>
+    <string name="broadcast_log">Broadcast Log</string>
+    <string name="settings">Settings</string>
+
+    <string name="options_telno">SMS relay</string>
+    <string name="options_telno2">phone number of SMS relay</string>
+    <string name="options_pushtx">pushTx relay</string>
+    <string name="options_pushtx2">URL of pushTx endpoint</string>
+    <string name="options_txtenna">txTenna relay</string>
+    <string name="options_txtenna2">URL of txTenna endpoint</string>
+    <string name="options_mainnet">MainNet</string>
+    <string name="options_mainnet2">Use MainNet for relaying transactions (uncheck to use TestNet)</string>
+    <string name="options_z85">Use Z85 encoding</string>
+    <string name="options_z85_2">Save space by encoding transaction bytes in Z85</string>
+    <string name="options_region">Geographical region</string>
+    <string name="options_region2">Select geographical region where your goTenna is located.</string>
+    <string name="options_clearlogs">Clear logs</string>
+    <string name="options_clearlogs2">Clear broadcast logs.</string>
+    <string name="use_intl_format">Use international dialing format. Ex.:\'+447385555555\'</string>
+    <string name="default_relay">+447490741539</string>
+    <string name="default_pushtx_mainnet">https://api.samouraiwallet.com/v2/pushTx</string>
+    <string name="default_pushtx_testnet">https://api.samouraiwallet.com/test/v2/pushTx</string>
+    <string name="default_txtenna">https://api.samouraiwallet.com/v2/txtenna/segments</string>
+    <string name="invalid_url">Invalid URL</string>
+
+    <string name="muletools">MuleTools</string>
+    <string name="menu_scan_qr">Scan QR</string>
+    <string name="menu_network">Network</string>
+
+    <string name="scan">Scan</string>
+    <string name="tx_hex">Transaction hex</string>
+    <string name="enter_tx_hex">Enter transaction in hex format</string>
+
+    <string name="invalid_tx">Invalid transaction</string>
+    <string name="txTenna_selection">Coming soon...</string>
+
+    <string name="sent_sms">sent SMS</string>
+
+    <string name="sending">sending</string>
+    <string name="broadcasted">broadcasted</string>
+    <string name="to">to</string>
+    <string name="broadcast">Broadcast transaction</string>
+
+    <string name="broadcast_to_mesh">Broadcast to mesh network</string>
+    <string name="relay_to_mainnet">Broadcast to bitcoin mainnet</string>
+    <string name="relay_to_testnet">Broadcast to bitcoin testnet</string>
+    <string name="unknown">TBD</string>
+
+    <string name="relayed_to_mesh">Relayed via goTenna mesh network</string>
+    <string name="relayed_to_sms">Relayed via SMS</string>
+    <string name="broadcast_to_bitcoin">Broadcast to bitcoin network</string>
+    <string name="received_via_mesh">Received via goTenna mesh network</string>
+    <string name="received_via_sms">Received via SMS</string>
+
+    <string name="copied_to_clipboard">Copied to clipboard</string>
+
+    <string name="pair_device">Pair device</string>
+    <string name="unpair_device">Unpair device</string>
+    <string name="get_mesh_device">Get Mesh Device</string>
+    <string name="no_mesh_device_detected">No mesh device detected</string>
+    <string name="rescan_or_buy">Turn on your GoTenna Mesh and rescan or buy a GoTenna Mesh device</string>
+    <string name="mesh_device_detected">Mesh device detected</string>
+    <string name="mesh_device_detected2">Connected to GoTenna Mesh</string>
+
+    <string name="sure_clear_logs">Are you sure you want to clear the broadcast logs?</string>
+
+</resources>

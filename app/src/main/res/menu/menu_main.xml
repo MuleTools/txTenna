@@ -1,0 +1,25 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.samourai.txtenna.MainActivity">
+    <item
+        android:id="@+id/action_settings"
+        android:orderInCategory="100"
+        android:title="@string/action_settings"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/qr_scan"
+        android:icon="@drawable/ic_txtenna_scan_qr"
+        android:orderInCategory="100"
+        android:title="@string/menu_scan_qr"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/networkmenu"
+        android:icon="@drawable/ic_txtenna_network"
+        android:orderInCategory="100"
+        android:title="@string/menu_network"
+        app:showAsAction="always" />
+
+</menu>
