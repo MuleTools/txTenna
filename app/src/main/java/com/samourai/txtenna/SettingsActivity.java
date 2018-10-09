@@ -159,6 +159,9 @@ public class SettingsActivity extends PreferenceActivity {
             }
         });
 
+        Preference aboutPref = (Preference) findPreference("about");
+        aboutPref.setSummary("txTenna" + ", v" + getResources().getString(R.string.version_name));
+
     }
 
     @Override
