@@ -10,9 +10,24 @@ import android.preference.CheckBoxPreference;
 import android.preference.EditTextPreference;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
+import android.util.Log;
 import android.widget.Toast;
 
+import com.gotenna.sdk.GoTenna;
+import com.gotenna.sdk.bluetooth.GTConnectionManager;
+import com.gotenna.sdk.commands.GTCommand;
+import com.gotenna.sdk.commands.GTCommandCenter;
+import com.gotenna.sdk.commands.GTError;
+import com.gotenna.sdk.commands.Place;
+import com.gotenna.sdk.interfaces.GTErrorListener;
+import com.gotenna.sdk.responses.GTResponse;
+import com.gotenna.sdk.types.GTDataTypes;
 import com.samourai.txtenna.prefs.PrefsUtil;
+import com.samourai.txtenna.utils.IncomingMessagesManager;
+import com.samourai.txtenna.utils.goTennaUtil;
+
+import java.security.SecureRandom;
+import java.util.UUID;
 //import android.util.Log;
 
 public class SettingsActivity extends PreferenceActivity {
@@ -107,28 +122,11 @@ public class SettingsActivity extends PreferenceActivity {
             }
         });
 
-        Preference aboutPref = (Preference) findPreference("about");
-        aboutPref.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+        Preference regionPref = (Preference) findPreference("region");
+        regionPref.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
             public boolean onPreferenceClick(Preference preference) {
 
-                new AlertDialog.Builder(SettingsActivity.this)
-                        .setIcon(R.mipmap.ic_launcher_round)
-                        .setTitle(R.string.app_name)
-                        .setMessage(getText(R.string.app_name) + ", " + getText(R.string.version_name))
-                        .setCancelable(false)
-                        .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int whichButton) {
-                                dialog.dismiss();
-                            }
-                        })
-                        .setNegativeButton(R.string.muletools, new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int whichButton) {
-                                dialog.dismiss();
-
-                                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/MuleTools/MuleTools"));
-                                startActivity(browserIntent);
-                            }
-                        }).show();
+                doRegion();
 
                 return true;
             }
@@ -140,6 +138,85 @@ public class SettingsActivity extends PreferenceActivity {
     @Override
     protected void onResume() {
         super.onResume();
+    }
+
+    private void doRegion()	{
+
+        final CharSequence[] regions = {
+                "North America",
+                "Europe",
+                "Australia",
+                "New Zealand",
+                "Singapore",
+        };
+
+        final int sel = PrefsUtil.getInstance(SettingsActivity.this).getValue(PrefsUtil.REGION, 0);
+        final int _sel;
+        if(sel >= regions.length)    {
+            _sel = 0;
+        }
+        else    {
+            _sel = sel;
+        }
+
+        new AlertDialog.Builder(SettingsActivity.this)
+                .setTitle(R.string.options_region)
+                .setSingleChoiceItems(regions, _sel, new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+
+                                PrefsUtil.getInstance(SettingsActivity.this).setValue(PrefsUtil.REGION, which);
+
+                                if(GoTenna.tokenIsVerified() && goTennaUtil.getInstance(SettingsActivity.this).isPaired())    {
+
+                                    Place place = null;
+                                    switch(sel)    {
+                                        case 1:
+                                            place = Place.EUROPE;
+                                            break;
+                                        case 2:
+                                            place = Place.AUSTRALIA;
+                                            break;
+                                        case 3:
+                                            place = Place.NEW_ZEALAND;
+                                            break;
+                                        case 4:
+                                            place = Place.SINGAPORE;
+                                            break;
+                                        default:
+                                            place = Place.NORTH_AMERICA;
+                                            break;
+                                    }
+
+                                    GTCommandCenter.getInstance().sendSetGeoRegion(place, new GTCommand.GTCommandResponseListener()
+                                    {
+                                        @Override
+                                        public void onResponse(GTResponse response)
+                                        {
+                                            if (response.getResponseCode() == GTDataTypes.GTCommandResponseCode.POSITIVE)
+                                            {
+                                                Log.d("SettingsActivity", "Region set OK");
+                                            }
+                                            else
+                                            {
+                                                Log.d("SettingsActivity", "Region not set:" + response.toString());
+                                            }
+                                        }
+                                    }, new GTErrorListener()
+                                    {
+                                        @Override
+                                        public void onError(GTError error)
+                                        {
+                                            Log.d("SettingsActivity", error.toString() + "," + error.getCode());
+                                        }
+                                    });
+
+                                }
+
+                                dialog.dismiss();
+                            }
+                        }
+                ).show();
+
     }
 
 }

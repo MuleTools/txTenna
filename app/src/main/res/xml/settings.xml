@@ -37,6 +37,12 @@
         />
 
     <Preference
+        android:title="@string/options_region"
+        android:summary="@string/options_region2"
+        android:key="region"
+        />
+
+    <Preference
         android:title="@string/about_us"
         android:summary="@string/about_us"
         android:key="about"

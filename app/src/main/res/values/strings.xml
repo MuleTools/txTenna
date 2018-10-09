@@ -26,6 +26,8 @@
     <string name="options_txtenna2">URL of txTenna endpoint</string>
     <string name="options_mainnet">MainNet</string>
     <string name="options_mainnet2">Use MainNet for relaying transactions (uncheck to use TestNet)</string>
+    <string name="options_region">Geographical region</string>
+    <string name="options_region2">Select geographical region where your goTenna is located.</string>
     <string name="options_z85">Use Z85 encoding</string>
     <string name="options_z85_2">Save space by encoding transaction bytes in Z85</string>
     <string name="use_intl_format">Use international dialing format. Ex.:\'+447385555555\'</string>

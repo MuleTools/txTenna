@@ -200,18 +200,39 @@ public class MainActivity extends AppCompatActivity {
 
         if(GoTenna.tokenIsVerified() && goTennaUtil.getInstance(MainActivity.this).isPaired())    {
 
-            GTCommandCenter.getInstance().sendSetGeoRegion(Place.EUROPE, new GTCommand.GTCommandResponseListener()
+            int region = PrefsUtil.getInstance(MainActivity.this).getValue(PrefsUtil.REGION, 0);
+
+            Place place = null;
+            switch(region)    {
+                case 1:
+                    place = Place.EUROPE;
+                    break;
+                case 2:
+                    place = Place.AUSTRALIA;
+                    break;
+                case 3:
+                    place = Place.NEW_ZEALAND;
+                    break;
+                case 4:
+                    place = Place.SINGAPORE;
+                    break;
+                default:
+                    place = Place.NORTH_AMERICA;
+                    break;
+            }
+
+            GTCommandCenter.getInstance().sendSetGeoRegion(place, new GTCommand.GTCommandResponseListener()
             {
                 @Override
                 public void onResponse(GTResponse response)
                 {
                     if (response.getResponseCode() == GTDataTypes.GTCommandResponseCode.POSITIVE)
                     {
-                        Log.d("MainActivity", "GID set OK");
+                        Log.d("MainActivity", "Region set OK");
                     }
                     else
                     {
-                        Log.d("MainActivity", "GID set OK:" + response.toString());
+                        Log.d("MainActivity", "Region set:" + response.toString());
                     }
                 }
             }, new GTErrorListener()
