@@ -57,6 +57,7 @@ import com.samourai.txtenna.utils.goTennaUtil;
 import com.yanzhenjie.zbar.Symbol;
 
 import org.apache.commons.io.IOUtils;
+import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.Transaction;
 import org.bitcoinj.core.VerificationException;
 import org.bitcoinj.params.MainNetParams;
@@ -94,31 +95,6 @@ public class MainActivity extends AppCompatActivity {
     private BroadcastReceiver isReceiver = null;
 
     private Boolean relayViaGoTenna = null;
-
-    public static final String ACTION_INTENT = "com.samourai.txtenna.LOG";
-    protected BroadcastReceiver receiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(final Context context, Intent intent) {
-
-            /*
-            if(ACTION_INTENT.equals(intent.getAction()) && tvLog != null) {
-
-                String strText = intent.getStringExtra("msg");
-                String strLog = tvLog.getText().toString();
-
-                if(strLog.length() > 0) {
-                    strLog += "\n";
-                }
-
-                strLog += strText;
-
-                tvLog.setText(strLog);
-
-            }
-            */
-
-        }
-    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -184,9 +160,6 @@ public class MainActivity extends AppCompatActivity {
         if (!hasReadSmsPermission() || !hasSendSmsPermission()) {
             showRequestSMSPermissionInfoAlertDialog();
         }
-
-        IntentFilter filter = new IntentFilter(ACTION_INTENT);
-        LocalBroadcastManager.getInstance(MainActivity.this).registerReceiver(receiver, filter);
 
         try {
             PayloadFactory.getInstance(MainActivity.this).readBroadcastLog();
@@ -262,10 +235,15 @@ public class MainActivity extends AppCompatActivity {
         String scheme = getIntent().getScheme();
         if(action != null && action.equals("com.samourai.txtenna.HEX")) {
             String hex = getIntent().getStringExtra(Intent.EXTRA_TEXT);
+            String[] s = hex.split("-");
             Log.d("MainActivity", "hex:" + hex);
+            NetworkParameters params = null;
+            if(s.length > 1)    {
+                params = (s[1].equalsIgnoreCase("t") ? TestNet3Params.get() : MainNetParams.get());
+            }
             if(hex != null && hex.length() > 0 && hex.matches("^[0-9A-Fa-f]+$"))    {
                 relayViaGoTenna = null;
-                doSendHex(hex);
+                doSendHex(hex, params);
             }
         }
 
@@ -304,8 +282,6 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
-
-        LocalBroadcastManager.getInstance(MainActivity.this).unregisterReceiver(receiver);
 
         try {
             if(isReceiver != null)    {
@@ -488,7 +464,7 @@ public class MainActivity extends AppCompatActivity {
 
                 final String strResult = data.getStringExtra(ZBarConstants.SCAN_RESULT).trim();
 
-                doSendHex(strResult);
+                doSendHex(strResult, null);
 
             }
         } else {
@@ -539,7 +515,7 @@ public class MainActivity extends AppCompatActivity {
                         Log.d("MainActivity", "hash:" + tx.getHashAsString());
                         try {
                             tx.verify();
-                            doSendHex(strHexTx);
+                            doSendHex(strHexTx, null);
                         }
                         catch(VerificationException ve) {
                             Toast.makeText(MainActivity.this, R.string.invalid_tx, Toast.LENGTH_SHORT).show();
@@ -648,7 +624,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private void doSendHex(final String hexTx)    {
+    private void doSendHex(final String hexTx, final NetworkParameters params)    {
 
         if(!hexTx.matches("^[A-Fa-f0-9]+$")) {
             return;
@@ -674,7 +650,7 @@ public class MainActivity extends AppCompatActivity {
 
                     dialog.dismiss();
 
-                    List<String> payload  = PayloadFactory.getInstance(MainActivity.this).toJSON(hexTx, relayViaGoTenna);
+                    List<String> payload  = PayloadFactory.getInstance(MainActivity.this).toJSON(hexTx, relayViaGoTenna, params);
                     PayloadFactory.getInstance(MainActivity.this).relayPayload(payload, relayViaGoTenna);
                     relayViaGoTenna = null;
 
@@ -696,7 +672,7 @@ public class MainActivity extends AppCompatActivity {
 
                     dialog.dismiss();
 
-                    List<String> payload  = PayloadFactory.getInstance(MainActivity.this).toJSON(hexTx, true);
+                    List<String> payload  = PayloadFactory.getInstance(MainActivity.this).toJSON(hexTx, true, params);
                     PayloadFactory.getInstance(MainActivity.this).relayPayload(payload, true);
                     relayViaGoTenna = null;
 
@@ -717,7 +693,7 @@ public class MainActivity extends AppCompatActivity {
 
                     dialog.dismiss();
 
-                    List<String> payload  = PayloadFactory.getInstance(MainActivity.this).toJSON(hexTx, false);
+                    List<String> payload  = PayloadFactory.getInstance(MainActivity.this).toJSON(hexTx, false, params);
                     PayloadFactory.getInstance(MainActivity.this).relayPayload(payload, false);
                     relayViaGoTenna = null;
 

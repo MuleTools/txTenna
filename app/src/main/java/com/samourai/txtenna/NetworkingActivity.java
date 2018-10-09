@@ -124,13 +124,6 @@ public class NetworkingActivity extends AppCompatActivity {
             }
         });
 
-        /*
-        Log.d("NetworkingActivity", "checking connected address:" + goTennaUtil.getInstance().getGtConnectionManager().getConnectedGotennaAddress());
-        if(goTennaUtil.getInstance().isPaired())    {
-            goTennaUtil.getInstance().getGtConnectionManager().scanAndConnect(GTDeviceType.MESH);
-        }
-        */
-
     }
 
     private void changeState(){

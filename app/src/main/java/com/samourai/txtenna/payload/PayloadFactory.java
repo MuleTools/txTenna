@@ -20,6 +20,7 @@ import com.samourai.txtenna.utils.Z85;
 import com.samourai.txtenna.prefs.PrefsUtil;
 
 import org.apache.commons.io.IOUtils;
+import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.Transaction;
 import org.bitcoinj.params.MainNetParams;
 import org.bitcoinj.params.TestNet3Params;
@@ -98,7 +99,7 @@ public class PayloadFactory {
         return instance;
     }
 
-    public List<String> toJSON(String strHexTx, boolean isGoTenna) {
+    public List<String> toJSON(String strHexTx, boolean isGoTenna, NetworkParameters params) {
 
         int segment0Len = isGoTenna ? goTennaSegment0Len : smsSegment0Len;
         int segment1Len = isGoTenna ? goTennaSegment1Len : smsSegment1Len;
@@ -178,7 +179,7 @@ public class PayloadFactory {
                 Seg0 seg0 = new Seg0();
                 seg0.s = count;
                 seg0.i = id;
-                if(PrefsUtil.getInstance(context).getValue(PrefsUtil.USE_MAINNET, true) == false)    {
+                if((params != null && params instanceof TestNet3Params) || PrefsUtil.getInstance(context).getValue(PrefsUtil.USE_MAINNET, true) == false)    {
                     seg0.n = "t";
                 }
                 if(PrefsUtil.getInstance(context).getValue(PrefsUtil.USE_Z85, false) == true)    {
@@ -208,19 +209,6 @@ public class PayloadFactory {
 
         }
 
-/*
-        Handler handler = new Handler();
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-                Intent intent = new Intent("com.samourai.ponydirect.LOG");
-                intent.putExtra("msg", context.getText(R.string.sending) + ":" + tx.getHashAsString() + " " + context.getText(R.string.to) + ":" + PrefsUtil.getInstance(context).getValue(PrefsUtil.SMS_RELAY, context.getText(R.string.default_relay).toString()));
-                LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
-            }
-        });
-
-        sendPayload(ret);
-*/
         return ret;
 
     }
@@ -435,20 +423,6 @@ public class PayloadFactory {
                     }
                 });
 
-                /*
-                final String _response = response;
-
-                Handler handler = new Handler();
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        Intent intent = new Intent("com.samourai.ponydirect.LOG");
-                        intent.putExtra("msg", context.getText(R.string.broadcasted) + ":" + _response);
-                        LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
-                    }
-                });
-                */
-
                 BroadcastLogUtil.getInstance().add(payload.get(0), false, goTenna);
 
                 Looper.loop();
@@ -500,20 +474,6 @@ public class PayloadFactory {
                         Toast.makeText(context, _response + ":" + segment, Toast.LENGTH_SHORT).show();
                     }
                 });
-
-                /*
-                final String _response = response;
-
-                Handler handler = new Handler();
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        Intent intent = new Intent("com.samourai.ponydirect.LOG");
-                        intent.putExtra("msg", context.getText(R.string.broadcasted) + ":" + _response);
-                        LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
-                    }
-                });
-                */
 
                 Looper.loop();
 

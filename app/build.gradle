@@ -8,8 +8,8 @@ android {
         minSdkVersion 18
         targetSdkVersion 26
         versionCode 1
-        versionName "0.01"
-        resValue "string", "version_name", "0.01"
+        versionName "0.90"
+        resValue "string", "version_name", "0.90"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         multiDexEnabled true
         vectorDrawables.useSupportLibrary = true
@@ -32,9 +32,9 @@ android {
             minSdkVersion 18
             targetSdkVersion 26
             versionCode 1
-            versionName "0.01"
+            versionName "0.90"
             resValue "string", "app_name", "txTenna"
-            resValue "string", "version_name", "0.01"
+            resValue "string", "version_name", "0.90"
             matchingFallbacks = ['debug', 'release']
         }
         staging {
@@ -42,9 +42,9 @@ android {
             minSdkVersion 18
             targetSdkVersion 26
             versionCode 1
-            versionName "0.01"
+            versionName "0.90"
             resValue "string", "app_name", "txTenna Staging"
-            resValue "string", "version_name", "0.01"
+            resValue "string", "version_name", "0.90"
             matchingFallbacks = ['debug', 'release']
         }
     }
