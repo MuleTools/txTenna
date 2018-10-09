@@ -11,6 +11,7 @@
 
     <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
+    <string name="yes">Yes</string>
     <string name="close">Close</string>
     <string name="gotenna_mesh">GoTenna Mesh</string>
     <string name="sms_broadcast">SMS Broadcast</string>
@@ -26,10 +27,12 @@
     <string name="options_txtenna2">URL of txTenna endpoint</string>
     <string name="options_mainnet">MainNet</string>
     <string name="options_mainnet2">Use MainNet for relaying transactions (uncheck to use TestNet)</string>
-    <string name="options_region">Geographical region</string>
-    <string name="options_region2">Select geographical region where your goTenna is located.</string>
     <string name="options_z85">Use Z85 encoding</string>
     <string name="options_z85_2">Save space by encoding transaction bytes in Z85</string>
+    <string name="options_region">Geographical region</string>
+    <string name="options_region2">Select geographical region where your goTenna is located.</string>
+    <string name="options_clearlogs">Clear logs</string>
+    <string name="options_clearlogs2">Clear broadcast logs.</string>
     <string name="use_intl_format">Use international dialing format. Ex.:\'+447385555555\'</string>
     <string name="default_relay">+447490741539</string>
     <string name="default_pushtx_mainnet">https://api.samouraiwallet.com/v2/pushTx</string>
@@ -75,5 +78,7 @@
     <string name="rescan_or_buy">Turn on your GoTenna Mesh and rescan or buy a GoTenna Mesh device</string>
     <string name="mesh_device_detected">Mesh device detected</string>
     <string name="mesh_device_detected2">Connected to GoTenna Mesh</string>
+
+    <string name="sure_clear_logs">Are you sure you want to clear the broadcast logs?</string>
 
 </resources>

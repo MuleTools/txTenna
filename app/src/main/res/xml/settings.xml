@@ -43,6 +43,12 @@
         />
 
     <Preference
+        android:title="@string/options_clearlogs"
+        android:summary="@string/options_clearlogs2"
+        android:key="clearlogs"
+        />
+
+    <Preference
         android:title="@string/about_us"
         android:summary="@string/about_us"
         android:key="about"

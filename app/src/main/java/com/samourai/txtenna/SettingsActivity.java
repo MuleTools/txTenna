@@ -23,6 +23,7 @@ import com.gotenna.sdk.interfaces.GTErrorListener;
 import com.gotenna.sdk.responses.GTResponse;
 import com.gotenna.sdk.types.GTDataTypes;
 import com.samourai.txtenna.prefs.PrefsUtil;
+import com.samourai.txtenna.utils.BroadcastLogUtil;
 import com.samourai.txtenna.utils.IncomingMessagesManager;
 import com.samourai.txtenna.utils.goTennaUtil;
 
@@ -132,6 +133,31 @@ public class SettingsActivity extends PreferenceActivity {
             }
         });
 
+        Preference clearLogsPref = (Preference) findPreference("clearlogs");
+        clearLogsPref.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+            public boolean onPreferenceClick(Preference preference) {
+
+                new AlertDialog.Builder(SettingsActivity.this)
+                        .setTitle(R.string.sure_clear_logs)
+                        .setCancelable(false)
+                        .setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int whichButton) {
+
+                                dialog.dismiss();
+                                BroadcastLogUtil.getInstance().getBroadcastLog().clear();
+
+                            }
+                        })
+                        .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int whichButton) {
+                                dialog.dismiss();
+                            }
+                        })
+                        .show();
+
+                return true;
+            }
+        });
 
     }
 
