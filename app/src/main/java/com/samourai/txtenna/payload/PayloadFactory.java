@@ -403,6 +403,7 @@ public class PayloadFactory {
 
                 String response = null;
                 String url = (useMainNet) ? context.getText(R.string.default_pushtx_mainnet).toString() : context.getText(R.string.default_pushtx_testnet).toString();
+                Log.d("PayloadFactory", "url:" + url);
 
                 try {
                     response = postURL(null, url, "tx=" + txHex);

@@ -35,8 +35,8 @@
     <string name="options_clearlogs2">Clear broadcast logs.</string>
     <string name="use_intl_format">Use international dialing format. Ex.:\'+447385555555\'</string>
     <string name="default_relay">+447490741539</string>
-    <string name="default_pushtx_mainnet">https://api.samouraiwallet.com/v2/pushTx</string>
-    <string name="default_pushtx_testnet">https://api.samouraiwallet.com/test/v2/pushTx</string>
+    <string name="default_pushtx_mainnet">https://api.samouraiwallet.com/v2/pushtx/</string>
+    <string name="default_pushtx_testnet">https://api.samouraiwallet.com/test/v2/pushtx/</string>
     <string name="default_txtenna">https://api.samouraiwallet.com/v2/txtenna/segments</string>
     <string name="invalid_url">Invalid URL</string>
 
