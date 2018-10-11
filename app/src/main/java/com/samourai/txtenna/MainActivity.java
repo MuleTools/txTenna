@@ -241,9 +241,9 @@ public class MainActivity extends AppCompatActivity {
             if(s.length > 1)    {
                 params = (s[1].equalsIgnoreCase("t") ? TestNet3Params.get() : MainNetParams.get());
             }
-            if(hex != null && hex.length() > 0 && hex.matches("^[0-9A-Fa-f]+$"))    {
+            if(s[0] != null && s[0].length() > 0 && s[0].matches("^[0-9A-Fa-f]+$"))    {
                 relayViaGoTenna = null;
-                doSendHex(hex, params);
+                doSendHex(s[0], params);
             }
         }
 
