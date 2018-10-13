@@ -7,6 +7,8 @@ txTenna can:
 - be used for transmitting transactions to the bitcoin network via SMS. Send your own transactions by SMS using a known txTenna relay or allow your own contacts to use your mobile number as an SMS relay.
 - be used for transmitting transactions to the bitcoin network via the goTenna mesh network.
 
+[Pony Direct](https://github.com/MuleTools/PonyDirect) functionality has been rolled into txTenna which maintains backward compatibility for the Pony Direct SMS payload format.
+
 ## Get Started
 
 ### Build:
@@ -86,7 +88,7 @@ The format used is a simple JSON object for each SMS. Each SMS transmits a segme
 | s    | *integer*, number of segments for this transaction. Only used in the first segmwnt for a given transaction. |
 | h    | hash of the transaction. Only used in the first segment for a given transaction. May be Z85-encoded. |
 | n    | **optional**, network to use. 't' for TestNet3, otherwise assume MainNet. |
-| i    | txTenna payload ID. |
+| i    | txTenna payload ID. *integer* if via SMS, *string* if via gotenna Mesh |
 | c    | *integer*, sequence number for this segment. May be omitted in first segment for a given transaction (assumed to be 0). |
 | t    | hex transaction data for this segment. May be Z85-encoded.    |
 
@@ -127,7 +129,7 @@ The format used is a simple JSON object for each SMS. Each SMS transmits a segme
 
 ### Z85 encoding
 
-Z85 encoding of transaction data can be selected in the settings. This will result in 40% less data in the transmitted payload and fewer outgoing SMS for a sender. A receiver will detect incoming Z85 data and decode accordingly.
+Z85 encoding of transaction data can be selected in the settings. This will result in 40% less data in the transmitted payload and fewer outgoing SMS or goTenna data packets for a sender. A receiver will detect incoming Z85 data and decode accordingly.
 
 **Sample** (1 transaction, 4 SMS, Z85 encoded)
 
@@ -163,7 +165,7 @@ Z85 encoding of transaction data can be selected in the settings. This will resu
 
 ### License:
 
-[Unlicense](https://github.com/Samourai-Wallet/txTenna/blob/master/LICENSE)
+[Unlicense](https://github.com/MuleTools/txTenna/blob/develop/LICENSE)
 
 ### Contributing:
 
