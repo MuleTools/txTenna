@@ -21,7 +21,7 @@ The latest version of the APK can be installed from the [Github Releases page](h
 
 #### Broadcast a transaction by SMS:
 
-1. Launch txTenna and enter the mobile phone number of a known Pony Relay device in the toolbar settings. A known UK based Pony Relay (+447490741539) will be automatically entered. If adding a different mobile number make sure to use international format.
+1. Launch txTenna and enter the mobile phone number of a known txTenna device in the toolbar settings. A known UK based txTenna relay (+447490741539) will be automatically entered. If adding a different mobile number make sure to use international format.
 
 2. From the main screen either scan the QR code of a signed transaction or select 'SMS Broadcast' from FAB menu and paste the transaction in the popup. Confirm the relaying of the transaction when prompted. (You can create and display raw signed transactions with [Samourai Wallet](https://www.samouraiwallet.com))
 
@@ -29,11 +29,21 @@ The latest version of the APK can be installed from the [Github Releases page](h
 
 #### Relay transactions for your mobile contacts:
 
-1. Launch txTenna and keep it open
+1. Launch txTenna and keep it open.
 
 2. Incoming SMS using the payload format described below will be intercepted and parsed to reconstitute the signed hex transaction.
 
 3. Upon validation of the transaction hash, the transaction will be broadcast via the Samourai node pushTx.
+
+##### Common issues:
+
+- Sending device does not have sufficient SMS credit.
+
+- Receiving device switched OFF.
+
+- Sending to wrong network. Check MainNet/TestNet switch in settings.
+
+- The occasional dropped SMS. If you can identify which SMS was dropped you can re-send it and the receiving device will complete the slatted transaction and broadcast it.
 
 #### Broadcast a transaction by goTenna:
 
@@ -51,11 +61,21 @@ The latest version of the APK can be installed from the [Github Releases page](h
 
 #### Relay transactions for your goTenna contacts:
 
-1. Launch txTenna and keep it open
+1. Launch txTenna and keep it open.
 
 2. Incoming goTenna mesh network packets containing the payload format described below will be intercepted, parsed, and uploaded to the txTenna gateway.
 
 3. When all of the segments for a single transaction have been collected by the gateway, the transaction will be broadcast via the Samourai node pushTx.
+
+##### Common issues:
+
+- Receiving device switched OFF.
+
+- Sending to wrong network. Check MainNet/TestNet switch in settings.
+
+- Pairing issues. If such issues persist follow goTenna instruction and recommendations with regards to pairing. Run a few messaging tests using the Android goTenna app which includes a chat client. In addition, make sure that any other goTenna apps are NOT running on any devices you might be using. To ensure this, select them individually in Android Settings->Apps and use the 'force close' function.
+
+- The occasional dropped data packet. The more goTenna Mesh included in your network, the less often this will occur.
 
 ## Payload format
 
