@@ -11,7 +11,7 @@ txTenna can:
 
 ### Build:
 
-Import as Android Studio project. Should build "as is". PGP signed tagged releases correspond to builds that were released on GitHub.
+Import as Android Studio project. Should build "as is". PGP signed tagged releases correspond to builds that were released on GitHub. You will need to obtain a SDK developer token from [goTenna](https://www.gotenna.com/pages/sdk).
 
 ### APK:
 
