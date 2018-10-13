@@ -14,7 +14,7 @@ public class goTennaUtil {
     private static BluetoothAdapterManager bluetoothAdapterManager = null;
     private static GTConnectionManager gtConnectionManager = null;
 
-    private static final String GOTENNA_APP_TOKEN = "";
+    private static final String GOTENNA_APP_TOKEN = "[-- REDACTED --]";
 
     private static goTennaUtil instance = null;
 
