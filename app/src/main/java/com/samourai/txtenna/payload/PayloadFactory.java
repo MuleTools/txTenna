@@ -542,8 +542,8 @@ public class PayloadFactory {
 
     public void readBroadcastLog() throws IOException, JSONException {
         JSONObject obj = deserialize();
-        Log.d("PayloadFactory", "reading:" + obj.toString());
         if(obj != null && obj.has("logs"))    {
+            Log.d("PayloadFactory", "reading:" + obj.toString());
             BroadcastLogUtil.getInstance().fromJSON(obj.getJSONArray("logs"));
         }
     }
