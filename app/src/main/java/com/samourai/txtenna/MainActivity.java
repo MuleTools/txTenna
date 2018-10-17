@@ -40,13 +40,9 @@ import com.dm.zbar.android.scanner.ZBarConstants;
 import com.dm.zbar.android.scanner.ZBarScannerActivity;
 import com.gotenna.sdk.GoTenna;
 import com.gotenna.sdk.bluetooth.GTConnectionManager;
-import com.gotenna.sdk.commands.GTCommand;
 import com.gotenna.sdk.commands.GTCommandCenter;
 import com.gotenna.sdk.commands.GTError;
-import com.gotenna.sdk.commands.Place;
 import com.gotenna.sdk.interfaces.GTErrorListener;
-import com.gotenna.sdk.responses.GTResponse;
-import com.gotenna.sdk.types.GTDataTypes;
 import com.samourai.sms.SMSReceiver;
 import com.samourai.txtenna.adapters.BroadcastLogsAdapter;
 import com.samourai.txtenna.payload.PayloadFactory;
@@ -171,64 +167,25 @@ public class MainActivity extends AppCompatActivity {
         goTennaUtil.getInstance(MainActivity.this).init();
         Log.d("MainActivity", "checking connected address:" + goTennaUtil.getInstance(MainActivity.this).getGtConnectionManager().getConnectedGotennaAddress());
 
-        if(GoTenna.tokenIsVerified() && goTennaUtil.getInstance(MainActivity.this).isPaired())    {
+        if(GoTenna.tokenIsVerified()) {
 
+            // set new random GID every time we recreate the main activity
+            GTCommandCenter.getInstance().setGoTennaGID(new SecureRandom().nextLong(), UUID.randomUUID().toString(), new GTErrorListener() {
+                @Override
+                public void onError(GTError error) {
+                    Log.d("MainActivity", error.toString() + "," + error.getCode());
+                }
+            });
+
+            // set the geoloc region
             int region = PrefsUtil.getInstance(MainActivity.this).getValue(PrefsUtil.REGION, 0);
+            goTennaUtil.getInstance(MainActivity.this).setGeoloc(region);
 
-            Place place = null;
-            switch(region)    {
-                case 1:
-                    place = Place.EUROPE;
-                    break;
-                case 2:
-                    place = Place.AUSTRALIA;
-                    break;
-                case 3:
-                    place = Place.NEW_ZEALAND;
-                    break;
-                case 4:
-                    place = Place.SINGAPORE;
-                    break;
-                default:
-                    place = Place.NORTH_AMERICA;
-                    break;
+            // if NOT already paired, try to connect to a goTenna
+            if (!goTennaUtil.getInstance(MainActivity.this).isPaired()) {
+                IncomingMessagesManager.getInstance(MainActivity.this.getApplicationContext()).startListening();
+                goTennaUtil.getInstance(MainActivity.this).connect(null);
             }
-
-            GTCommandCenter.getInstance().sendSetGeoRegion(place, new GTCommand.GTCommandResponseListener()
-            {
-                @Override
-                public void onResponse(GTResponse response)
-                {
-                    if (response.getResponseCode() == GTDataTypes.GTCommandResponseCode.POSITIVE)
-                    {
-                        Log.d("MainActivity", "Region set OK");
-                    }
-                    else
-                    {
-                        Log.d("MainActivity", "Region set:" + response.toString());
-                    }
-                }
-            }, new GTErrorListener()
-            {
-                @Override
-                public void onError(GTError error)
-                {
-                    Log.d("MainActivity", error.toString() + "," + error.getCode());
-                }
-            });
-
-            GTCommandCenter.getInstance().setGoTennaGID(new SecureRandom().nextLong(), UUID.randomUUID().toString(), new GTErrorListener()
-            {
-                @Override
-                public void onError(GTError error)
-                {
-                    Log.d("MainActivity", error.toString() + "," + error.getCode());
-                }
-            });
-            goTennaUtil.getInstance(MainActivity.this).getGtConnectionManager().scanAndConnect(GTConnectionManager.GTDeviceType.MESH);
-
-            IncomingMessagesManager.getInstance(MainActivity.this.getApplicationContext()).startListening();
-
         }
 
         String action = getIntent().getAction();
