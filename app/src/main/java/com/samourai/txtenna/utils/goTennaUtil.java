@@ -28,7 +28,7 @@ public class goTennaUtil implements GTConnectionListener {
     private GTConnectionManager gtConnectionManager = null;
     private static final int SCAN_TIMEOUT = 25000; // 25 seconds
 
-    private static final String GOTENNA_APP_TOKEN = "";
+    private static final String GOTENNA_APP_TOKEN = "[-- REDACTED --]";
 
     private static goTennaUtil instance = null;
 

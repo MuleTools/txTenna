@@ -7,11 +7,13 @@ txTenna can:
 - be used for transmitting transactions to the bitcoin network via SMS. Send your own transactions by SMS using a known txTenna relay or allow your own contacts to use your mobile number as an SMS relay.
 - be used for transmitting transactions to the bitcoin network via the goTenna mesh network.
 
+[Pony Direct](https://github.com/MuleTools/PonyDirect) functionality has been rolled into txTenna which maintains backward compatibility for the Pony Direct SMS payload format.
+
 ## Get Started
 
 ### Build:
 
-Import as Android Studio project. Should build "as is". PGP signed tagged releases correspond to builds that were released on GitHub.
+Import as Android Studio project. Should build "as is". PGP signed tagged releases correspond to builds that were released on GitHub. You will need to obtain a SDK developer token from [goTenna](https://www.gotenna.com/pages/sdk).
 
 ### APK:
 
@@ -21,7 +23,7 @@ The latest version of the APK can be installed from the [Github Releases page](h
 
 #### Broadcast a transaction by SMS:
 
-1. Launch txTenna and enter the mobile phone number of a known Pony Relay device in the toolbar settings. A known UK based Pony Relay (+447490741539) will be automatically entered. If adding a different mobile number make sure to use international format.
+1. Launch txTenna and enter the mobile phone number of a known txTenna device in the toolbar settings. A known UK based txTenna relay (+447490741539) will be automatically entered. If adding a different mobile number make sure to use international format.
 
 2. From the main screen either scan the QR code of a signed transaction or select 'SMS Broadcast' from FAB menu and paste the transaction in the popup. Confirm the relaying of the transaction when prompted. (You can create and display raw signed transactions with [Samourai Wallet](https://www.samouraiwallet.com))
 
@@ -29,11 +31,21 @@ The latest version of the APK can be installed from the [Github Releases page](h
 
 #### Relay transactions for your mobile contacts:
 
-1. Launch txTenna and keep it open
+1. Launch txTenna and keep it open.
 
 2. Incoming SMS using the payload format described below will be intercepted and parsed to reconstitute the signed hex transaction.
 
 3. Upon validation of the transaction hash, the transaction will be broadcast via the Samourai node pushTx.
+
+##### Common issues:
+
+- Sending device does not have sufficient SMS credit.
+
+- Receiving device switched OFF.
+
+- Sending to wrong network. Check MainNet/TestNet switch in settings.
+
+- The occasional dropped SMS. If you can identify which SMS was dropped you can re-send it and the receiving device will complete the slatted transaction and broadcast it.
 
 #### Broadcast a transaction by goTenna:
 
@@ -51,11 +63,21 @@ The latest version of the APK can be installed from the [Github Releases page](h
 
 #### Relay transactions for your goTenna contacts:
 
-1. Launch txTenna and keep it open
+1. Launch txTenna and keep it open.
 
 2. Incoming goTenna mesh network packets containing the payload format described below will be intercepted, parsed, and uploaded to the txTenna gateway.
 
 3. When all of the segments for a single transaction have been collected by the gateway, the transaction will be broadcast via the Samourai node pushTx.
+
+##### Common issues:
+
+- Receiving device switched OFF.
+
+- Sending to wrong network. Check MainNet/TestNet switch in settings.
+
+- Pairing issues. If such issues persist follow goTenna instruction and recommendations with regards to pairing. Run a few messaging tests using the Android goTenna app which includes a chat client. In addition, make sure that any other goTenna apps are NOT running on any devices you might be using. To ensure this, select them individually in Android Settings->Apps and use the 'force close' function.
+
+- The occasional dropped data packet. The more goTenna Mesh included in your network, the less often this will occur.
 
 ## Payload format
 
@@ -66,7 +88,7 @@ The format used is a simple JSON object for each SMS. Each SMS transmits a segme
 | s    | *integer*, number of segments for this transaction. Only used in the first segmwnt for a given transaction. |
 | h    | hash of the transaction. Only used in the first segment for a given transaction. May be Z85-encoded. |
 | n    | **optional**, network to use. 't' for TestNet3, otherwise assume MainNet. |
-| i    | txTenna payload ID. |
+| i    | txTenna payload ID. *integer* if via SMS, *string* if via gotenna Mesh |
 | c    | *integer*, sequence number for this segment. May be omitted in first segment for a given transaction (assumed to be 0). |
 | t    | hex transaction data for this segment. May be Z85-encoded.    |
 
@@ -107,7 +129,7 @@ The format used is a simple JSON object for each SMS. Each SMS transmits a segme
 
 ### Z85 encoding
 
-Z85 encoding of transaction data can be selected in the settings. This will result in 40% less data in the transmitted payload and fewer outgoing SMS for a sender. A receiver will detect incoming Z85 data and decode accordingly.
+Z85 encoding of transaction data can be selected in the settings. This will result in 40% less data in the transmitted payload and fewer outgoing SMS or goTenna data packets for a sender. A receiver will detect incoming Z85 data and decode accordingly.
 
 **Sample** (1 transaction, 4 SMS, Z85 encoded)
 
@@ -143,7 +165,7 @@ Z85 encoding of transaction data can be selected in the settings. This will resu
 
 ### License:
 
-[Unlicense](https://github.com/Samourai-Wallet/txTenna/blob/master/LICENSE)
+[Unlicense](https://github.com/MuleTools/txTenna/blob/develop/LICENSE)
 
 ### Contributing:
 
