@@ -7,9 +7,9 @@ android {
         applicationId "com.samourai.txtenna"
         minSdkVersion 18
         targetSdkVersion 26
-        versionCode 4
-        versionName "0.90.03"
-        resValue "string", "version_name", "0.90.03"
+        versionCode 5
+        versionName "0.91"
+        resValue "string", "version_name", "0.91"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         multiDexEnabled true
         vectorDrawables.useSupportLibrary = true
@@ -31,20 +31,20 @@ android {
             applicationId 'com.samourai.txtenna'
             minSdkVersion 18
             targetSdkVersion 26
-            versionCode 4
-            versionName "0.90.03"
+            versionCode 5
+            versionName "0.91"
             resValue "string", "app_name", "txTenna"
-            resValue "string", "version_name", "0.90.03"
+            resValue "string", "version_name", "0.91"
             matchingFallbacks = ['debug', 'release']
         }
         staging {
             applicationId 'com.samourai.txtenna.staging'
             minSdkVersion 18
             targetSdkVersion 26
-            versionCode 4
-            versionName "0.90.03"
+            versionCode 5
+            versionName "0.91"
             resValue "string", "app_name", "txTenna Staging"
-            resValue "string", "version_name", "0.90.03"
+            resValue "string", "version_name", "0.91"
             matchingFallbacks = ['debug', 'release']
         }
     }

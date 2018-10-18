@@ -78,7 +78,11 @@
     <string name="rescan_or_buy">Turn on your GoTenna Mesh and rescan or buy a GoTenna Mesh device</string>
     <string name="mesh_device_detected">Mesh device detected</string>
     <string name="mesh_device_detected2">Connected to GoTenna Mesh</string>
+    <string name="mesh_device_disconnecting">Disconnecting</string>
+    <string name="mesh_device_scanning">Scanning</string>
 
     <string name="sure_clear_logs">Are you sure you want to clear the broadcast logs?</string>
+    <string name="invalid_token">Your SDK token is invalid. Please obtain a valid token from goTenna.</string>
+    <string name="scanning_please_wait">Scanning for goTenna Mesh device. Please wait.</string>
 
 </resources>
