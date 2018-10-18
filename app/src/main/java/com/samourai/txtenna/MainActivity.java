@@ -42,6 +42,7 @@ import com.gotenna.sdk.GoTenna;
 import com.gotenna.sdk.bluetooth.GTConnectionManager;
 import com.gotenna.sdk.commands.GTCommandCenter;
 import com.gotenna.sdk.commands.GTError;
+import com.gotenna.sdk.exceptions.GTInvalidAppTokenException;
 import com.gotenna.sdk.interfaces.GTErrorListener;
 import com.samourai.sms.SMSReceiver;
 import com.samourai.txtenna.adapters.BroadcastLogsAdapter;
@@ -164,47 +165,54 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
-        goTennaUtil.getInstance(MainActivity.this).init();
-        Log.d("MainActivity", "checking connected address:" + goTennaUtil.getInstance(MainActivity.this).getGtConnectionManager().getConnectedGotennaAddress());
+        try {
+            goTennaUtil.getInstance(MainActivity.this).init();
+            Log.d("MainActivity", "checking connected address:" + goTennaUtil.getInstance(MainActivity.this).getGtConnectionManager().getConnectedGotennaAddress());
 
-        if(GoTenna.tokenIsVerified()) {
+            if(GoTenna.tokenIsVerified()) {
 
-            // set new random GID every time we recreate the main activity
-            GTCommandCenter.getInstance().setGoTennaGID(new SecureRandom().nextLong(), UUID.randomUUID().toString(), new GTErrorListener() {
-                @Override
-                public void onError(GTError error) {
-                    Log.d("MainActivity", error.toString() + "," + error.getCode());
+                // set new random GID every time we recreate the main activity
+                GTCommandCenter.getInstance().setGoTennaGID(new SecureRandom().nextLong(), UUID.randomUUID().toString(), new GTErrorListener() {
+                    @Override
+                    public void onError(GTError error) {
+                        Log.d("MainActivity", error.toString() + "," + error.getCode());
+                    }
+                });
+
+                // set the geoloc region
+                int region = PrefsUtil.getInstance(MainActivity.this).getValue(PrefsUtil.REGION, 0);
+                goTennaUtil.getInstance(MainActivity.this).setGeoloc(region);
+
+                // if NOT already paired, try to connect to a goTenna
+                if (!goTennaUtil.getInstance(MainActivity.this).isPaired()) {
+                    IncomingMessagesManager.getInstance(MainActivity.this.getApplicationContext()).startListening();
+                    goTennaUtil.getInstance(MainActivity.this).connect(null);
                 }
-            });
-
-            // set the geoloc region
-            int region = PrefsUtil.getInstance(MainActivity.this).getValue(PrefsUtil.REGION, 0);
-            goTennaUtil.getInstance(MainActivity.this).setGeoloc(region);
-
-            // if NOT already paired, try to connect to a goTenna
-            if (!goTennaUtil.getInstance(MainActivity.this).isPaired()) {
-                IncomingMessagesManager.getInstance(MainActivity.this.getApplicationContext()).startListening();
-                goTennaUtil.getInstance(MainActivity.this).connect(null);
             }
+
+            String action = getIntent().getAction();
+            String scheme = getIntent().getScheme();
+            if(action != null && action.equals("com.samourai.txtenna.HEX")) {
+                String hex = getIntent().getStringExtra(Intent.EXTRA_TEXT);
+                String[] s = hex.split("-");
+                Log.d("MainActivity", "hex:" + hex);
+                NetworkParameters params = null;
+                if(s.length > 1)    {
+                    params = (s[1].equalsIgnoreCase("t") ? TestNet3Params.get() : MainNetParams.get());
+                }
+                if(s[0] != null && s[0].length() > 0 && s[0].matches("^[0-9A-Fa-f]+$"))    {
+                    relayViaGoTenna = null;
+                    doSendHex(s[0], params);
+                }
+            }
+
+            refreshData();
+
         }
-
-        String action = getIntent().getAction();
-        String scheme = getIntent().getScheme();
-        if(action != null && action.equals("com.samourai.txtenna.HEX")) {
-            String hex = getIntent().getStringExtra(Intent.EXTRA_TEXT);
-            String[] s = hex.split("-");
-            Log.d("MainActivity", "hex:" + hex);
-            NetworkParameters params = null;
-            if(s.length > 1)    {
-                params = (s[1].equalsIgnoreCase("t") ? TestNet3Params.get() : MainNetParams.get());
-            }
-            if(s[0] != null && s[0].length() > 0 && s[0].matches("^[0-9A-Fa-f]+$"))    {
-                relayViaGoTenna = null;
-                doSendHex(s[0], params);
-            }
+        catch(StringIndexOutOfBoundsException | GTInvalidAppTokenException e) {
+            Toast.makeText(MainActivity.this, R.string.invalid_token, Toast.LENGTH_LONG).show();
+            finish();
         }
-
-        refreshData();
 
     }
 
