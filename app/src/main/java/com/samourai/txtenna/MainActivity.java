@@ -320,6 +320,7 @@ public class MainActivity extends AppCompatActivity {
             startActivity(new Intent(this, NetworkingActivity.class));
             return true;
         }
+
         if (id == R.id.qr_scan) {
             relayViaGoTenna = null;
             doScanHexTx();
@@ -418,7 +419,6 @@ public class MainActivity extends AppCompatActivity {
         }).start();
 
     }
-
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
