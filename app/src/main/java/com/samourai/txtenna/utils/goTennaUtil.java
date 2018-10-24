@@ -165,6 +165,7 @@ public class goTennaUtil implements GTConnectionListener {
         }
         if (gtConnectionState != GTConnectionState.SCANNING) {
             getGtConnectionManager().removeGtConnectionListener(this);
+            handler.removeCallbacks(scanTimeoutRunnable);
             callbackActivity = null;
         }
     }
