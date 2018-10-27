@@ -55,6 +55,7 @@ import com.yanzhenjie.zbar.Symbol;
 
 import org.apache.commons.io.IOUtils;
 import org.bitcoinj.core.NetworkParameters;
+import org.bitcoinj.core.ProtocolException;
 import org.bitcoinj.core.Transaction;
 import org.bitcoinj.core.VerificationException;
 import org.bitcoinj.params.MainNetParams;
@@ -476,15 +477,7 @@ public class MainActivity extends AppCompatActivity {
 
                         Log.d("MainActivity", "hex:" + strHexTx);
 
-                        Transaction tx = new Transaction(PrefsUtil.getInstance(MainActivity.this).getValue(PrefsUtil.USE_MAINNET, true) ? MainNetParams.get() : TestNet3Params.get(), Hex.decode(strHexTx));
-                        Log.d("MainActivity", "hash:" + tx.getHashAsString());
-                        try {
-                            tx.verify();
-                            doSendHex(strHexTx, null);
-                        }
-                        catch(VerificationException ve) {
-                            Toast.makeText(MainActivity.this, R.string.invalid_tx, Toast.LENGTH_SHORT).show();
-                        }
+                        doSendHex(strHexTx, null);
 
                     }
                 }).setNegativeButton(R.string.scan, new DialogInterface.OnClickListener() {
@@ -595,8 +588,18 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        final Transaction tx = new Transaction(PrefsUtil.getInstance(MainActivity.this).getValue(PrefsUtil.USE_MAINNET, true) == true ? MainNetParams.get() : TestNet3Params.get(), Hex.decode(hexTx));
-        final String msg = MainActivity.this.getString(R.string.broadcast) + ":" + tx.getHashAsString() + " " + getText(R.string.to) + " " + PrefsUtil.getInstance(MainActivity.this).getValue(PrefsUtil.SMS_RELAY, MainActivity.this.getText(R.string.default_relay).toString()) + " ?";
+        Transaction tx = null;
+        String msg = null;
+        try {
+            tx = new Transaction(PrefsUtil.getInstance(MainActivity.this).getValue(PrefsUtil.USE_MAINNET, true) == true ? MainNetParams.get() : TestNet3Params.get(), Hex.decode(hexTx));
+            msg = MainActivity.this.getString(R.string.broadcast) + ":" + tx.getHashAsString() + " " + getText(R.string.to) + " " + PrefsUtil.getInstance(MainActivity.this).getValue(PrefsUtil.SMS_RELAY, MainActivity.this.getText(R.string.default_relay).toString()) + " ?";
+            Log.d("MainActivity", "hash:" + tx.getHashAsString());
+            tx.verify();
+        }
+        catch(VerificationException ve) {
+            Toast.makeText(MainActivity.this, R.string.invalid_tx, Toast.LENGTH_SHORT).show();
+            return;
+        }
 
         final TextView tvHexTx = new TextView(MainActivity.this);
         tvHexTx.setSingleLine(false);
