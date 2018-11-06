@@ -20,8 +20,10 @@ public class BroadcastLogUtil {
         public String hash = null;
         public String net = null; // "m" == mainnet, "t" == testnet, "g" == goTenna meshnet
         public boolean confirmed = false;
-        public boolean relayed = false; // true == relayed via sms or goTenna, false == uploaded to network
+        public boolean relayed = false; // true == relayed via sms or goTenna, false == received from sms or goTenna network
         public boolean goTenna = false; // true == relayed via goTenna, false == relayed via sms
+        public boolean broadcast = false; // true == uploaded to the bitcoin network
+        public long gid = 0; // gid of transaction originator
     }
 
     private static List<BroadcastLogEntry> broadcastLog = null;
@@ -54,7 +56,7 @@ public class BroadcastLogUtil {
         }
     }
 
-    public void add(String s, boolean relayed, boolean goTenna) {
+    public void add(String s, boolean relayed, boolean broadcast, boolean goTenna, long gid) {
 
         BroadcastLogEntry entry = new BroadcastLogEntry();
         Gson gson = new Gson();
@@ -76,6 +78,8 @@ public class BroadcastLogUtil {
         entry.net = (seg0.n != null || seg0.n.length() > 0) ? seg0.n : "m";
         entry.relayed = relayed;
         entry.goTenna = goTenna;
+        entry.broadcast = broadcast;
+        entry.gid = gid;
 
         add(entry);
     }
@@ -99,7 +103,9 @@ public class BroadcastLogUtil {
                 obj.put("net", entry.net);
                 obj.put("confirmed", entry.confirmed);
                 obj.put("relayed", entry.relayed);
+                obj.put("broadcast", entry.broadcast);
                 obj.put("goTenna", entry.goTenna);
+                obj.put("gid", entry.gid);
                 Log.d("BroadcastLogUtil", "toJSON:" + obj.toString());
                 entries.put(obj);
             }
@@ -125,7 +131,9 @@ public class BroadcastLogUtil {
                 entry.net = obj.getString("net");
                 entry.confirmed = obj.getBoolean("confirmed");
                 entry.relayed = obj.getBoolean("relayed");
+                entry.broadcast = obj.getBoolean("broadcast");
                 entry.goTenna = obj.getBoolean("goTenna");
+                entry.gid= obj.getLong("gid");
                 add(entry);
             }
         }
@@ -134,4 +142,14 @@ public class BroadcastLogUtil {
         }
     }
 
+    public int findTransaction(String txid) {
+        int index = 0;
+        for (BroadcastLogEntry entry : broadcastLog) {
+            if (entry.hash.equals(txid)) {
+                return index;
+            }
+            index++;
+        }
+        return -1;
+    }
 }

@@ -128,11 +128,14 @@ public class BroadcastLogsAdapter extends RecyclerView.Adapter<BroadcastLogsAdap
             Drawable mWrappedDrawable = DrawableCompat.wrap(mContext.getResources().getDrawable(R.drawable.ic_txtenna_done).mutate());
             DrawableCompat.setTint(mWrappedDrawable, Color.WHITE);
             DrawableCompat.setTintMode(mWrappedDrawable, PorterDuff.Mode.SRC_ATOP);
+            holder.cardTitle.setText(R.string.confirmed_via_bitcoin);
             holder.icon.setImageDrawable(mWrappedDrawable);
             holder.icon.setBackground(mContext.getResources().getDrawable(R.drawable.circle_green));
         }
-
-        if(entry.relayed)    {
+        else if(entry.broadcast) {
+            holder.cardTitle.setText(R.string.broadcast_to_bitcoin);
+        }
+        else if(entry.relayed)    {
             if(entry.goTenna)    {
                 holder.cardTitle.setText(R.string.relayed_to_mesh);
             }
@@ -141,15 +144,12 @@ public class BroadcastLogsAdapter extends RecyclerView.Adapter<BroadcastLogsAdap
             }
         }
         else    {
-            /*
             if(entry.goTenna)    {
                 holder.cardTitle.setText(R.string.received_via_mesh);
             }
             else    {
                 holder.cardTitle.setText(R.string.received_via_sms);
             }
-            */
-            holder.cardTitle.setText(R.string.broadcast_to_bitcoin);
         }
 
         holder.txId.setText(entry.hash);
