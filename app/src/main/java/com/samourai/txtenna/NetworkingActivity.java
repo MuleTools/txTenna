@@ -19,6 +19,7 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.gotenna.sdk.GoTenna;
 import com.samourai.txtenna.prefs.PrefsUtil;
 
 import com.samourai.txtenna.utils.goTennaUtil;
@@ -65,18 +66,6 @@ public class NetworkingActivity extends AppCompatActivity {
             }
         });
 
-        if(goTennaUtil.getInstance(NetworkingActivity.this).isPaired())    {
-            String device = getText(R.string.mesh_device_detected2) + ": " + goTennaUtil.getInstance(NetworkingActivity.this).getGtConnectionManager().getConnectedGotennaAddress();
-            mesh_card_detail.setText(device);
-            mesh_card_detail_title.setText(R.string.mesh_device_detected);
-            status_img_mesh.setImageDrawable(getResources().getDrawable(R.drawable.circle_green));
-        }
-        else    {
-            mesh_card_detail.setText(R.string.rescan_or_buy);
-            mesh_card_detail_title.setText(R.string.no_mesh_device_detected);
-            status_img_mesh.setImageDrawable(getResources().getDrawable(R.drawable.circle_red));
-        }
-
         btRescan = findViewById(R.id.btn_rescan);
         if(goTennaUtil.getInstance(NetworkingActivity.this).isPaired())    {
             btRescan.setText(R.string.unpair_device);
@@ -87,7 +76,6 @@ public class NetworkingActivity extends AppCompatActivity {
         btRescan.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
                 if(goTennaUtil.getInstance(NetworkingActivity.this).isPaired())    {
                     goTennaUtil.getInstance(NetworkingActivity.this).disconnect(NetworkingActivity.this);
                     btRescan.setText(R.string.mesh_device_disconnecting);
@@ -109,9 +97,46 @@ public class NetworkingActivity extends AppCompatActivity {
                     }
 
                 }
-
             }
         });
+
+        Log.d("NetworkActivity", "gtConnectionState:" + goTennaUtil.getInstance(NetworkingActivity.this).getGtConnectionManager().getGtConnectionState());
+        Log.d("NetworkActivity", "connected address:" + goTennaUtil.getInstance(NetworkingActivity.this).getGtConnectionManager().getConnectedGotennaAddress());
+        if(goTennaUtil.getInstance(NetworkingActivity.this).isPaired())    {
+            String device = getText(R.string.mesh_device_detected2) + ": " + goTennaUtil.getInstance(NetworkingActivity.this).getGtConnectionManager().getConnectedGotennaAddress();
+            mesh_card_detail.setText(device);
+            mesh_card_detail_title.setText(R.string.mesh_device_detected);
+            status_img_mesh.setImageDrawable(getResources().getDrawable(R.drawable.circle_green));
+        }
+        else    {
+            mesh_card_detail.setText(R.string.rescan_or_buy);
+            mesh_card_detail_title.setText(R.string.no_mesh_device_detected);
+            status_img_mesh.setImageDrawable(getResources().getDrawable(R.drawable.circle_red));
+        }
+
+        if(GoTenna.tokenIsVerified()) {
+            scan();
+        }
+
+    }
+
+    public void setStatusText(String deviceName) {
+        if (!deviceName.isEmpty()) {
+            Log.d("NetworkingActivity", "connected address:" + deviceName);
+            btRescan.setText(R.string.unpair_device);
+            String detail = getText(R.string.mesh_device_detected2) + ": " + deviceName;
+            mesh_card_detail.setText(detail);
+            mesh_card_detail_title.setText(R.string.mesh_device_detected);
+            status_img_mesh.setImageDrawable(getResources().getDrawable(R.drawable.circle_green));
+        }
+        else {
+            btRescan.setText(R.string.pair_device);
+            mesh_card_detail.setText(R.string.rescan_or_buy);
+            mesh_card_detail_title.setText(R.string.no_mesh_device_detected);
+            status_img_mesh.setImageDrawable(getResources().getDrawable(R.drawable.circle_red));
+        }
+
+        btRescan.setEnabled(true);
 
     }
 
@@ -152,21 +177,21 @@ public class NetworkingActivity extends AppCompatActivity {
 
     }
 
-    public void setStatusText(String deviceName) {
-        if (!deviceName.isEmpty()) {
-            Log.d("NetworkingActivity", "connected address:" + deviceName);
-            btRescan.setText(R.string.unpair_device);
-            String detail = getText(R.string.mesh_device_detected2) + ": " + deviceName;
-            mesh_card_detail.setText(detail);
-            mesh_card_detail_title.setText(R.string.mesh_device_detected);
-            status_img_mesh.setImageDrawable(getResources().getDrawable(R.drawable.circle_green));
+    private void scan()    {
+
+        if(!hasBluetoothPermisson())    {
+            requestBluetoothPermission();
         }
-        else {
-            btRescan.setText(R.string.pair_device);
-            mesh_card_detail.setText(R.string.rescan_or_buy);
-            mesh_card_detail_title.setText(R.string.no_mesh_device_detected);
-            status_img_mesh.setImageDrawable(getResources().getDrawable(R.drawable.circle_red));
+        if(!hasLocationpermission())    {
+            requestLocationPermission();
         }
-        btRescan.setEnabled(true);
+
+        if(hasLocationpermission() && hasBluetoothPermisson())    {
+            goTennaUtil.getInstance(NetworkingActivity.this).connect(NetworkingActivity.this);
+            btRescan.setText(R.string.mesh_device_scanning);
+            btRescan.setEnabled(false);
+        }
+
     }
+
 }

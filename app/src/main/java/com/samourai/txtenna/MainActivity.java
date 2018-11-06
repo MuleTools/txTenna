@@ -49,6 +49,7 @@ import com.samourai.txtenna.utils.goTennaUtil;
 import com.yanzhenjie.zbar.Symbol;
 
 import org.bitcoinj.core.NetworkParameters;
+import org.bitcoinj.core.ProtocolException;
 import org.bitcoinj.core.Transaction;
 import org.bitcoinj.core.VerificationException;
 import org.bitcoinj.params.MainNetParams;
@@ -151,15 +152,14 @@ public class MainActivity extends AppCompatActivity implements IncomingMessagesM
 
         try {
             PayloadFactory.getInstance(MainActivity.this, TransactionHandler.getInstance(adapter)).readBroadcastLog();
-        }
-        catch(JSONException | IOException e) {
+        } catch (JSONException | IOException e) {
             e.printStackTrace();
         }
 
         goTennaUtil.getInstance(MainActivity.this).init();
         Log.d("MainActivity", "checking connected address:" + goTennaUtil.getInstance(MainActivity.this).getGtConnectionManager().getConnectedGotennaAddress());
 
-        if(GoTenna.tokenIsVerified()) {
+        if (GoTenna.tokenIsVerified()) {
             // set new random GID every time we recreate the main activity
             long gid = abs(new SecureRandom().nextLong()) % 9999999999L;
             goTennaUtil.getInstance(MainActivity.this).setGID(gid);
@@ -178,454 +178,456 @@ public class MainActivity extends AppCompatActivity implements IncomingMessagesM
 
         String action = getIntent().getAction();
         String scheme = getIntent().getScheme();
-        if(action != null && action.equals("com.samourai.txtenna.HEX")) {
+        if (action != null && action.equals("com.samourai.txtenna.HEX")) {
             String hex = getIntent().getStringExtra(Intent.EXTRA_TEXT);
             String[] s = hex.split("-");
             Log.d("MainActivity", "hex:" + hex);
             NetworkParameters params = null;
-            if(s.length > 1)    {
+            if (s.length > 1) {
                 params = (s[1].equalsIgnoreCase("t") ? TestNet3Params.get() : MainNetParams.get());
             }
-            if(s[0] != null && s[0].length() > 0 && s[0].matches("^[0-9A-Fa-f]+$"))    {
+            if (s[0] != null && s[0].length() > 0 && s[0].matches("^[0-9A-Fa-f]+$")) {
                 relayViaGoTenna = null;
                 doSendHex(s[0], params);
             }
         }
-    }
+      }
 
-    @Override
-    protected void onPostCreate(@Nullable Bundle savedInstanceState) {
-        super.onPostCreate(savedInstanceState);
-        try {
-            TransactionHandler transactionHandler = TransactionHandler.getInstance(adapter);
+        @Override
+        protected void onPostCreate(@Nullable Bundle savedInstanceState) {
+            super.onPostCreate(savedInstanceState);
+            try {
+                TransactionHandler transactionHandler = TransactionHandler.getInstance(adapter);
             transactionHandler.start();
 
             refreshData();
             transactionHandler.startTransactionChecker();
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-
-        if(isReceiver == null)    {
-            isFilter = new IntentFilter();
-            isFilter.addAction("android.provider.Telephony.SMS_RECEIVED");
-            isFilter.setPriority(2147483647);
-            isReceiver = new SMSReceiver(TransactionHandler.getInstance(adapter));
-            MainActivity.this.registerReceiver(isReceiver, isFilter);
-        }
-        refreshData();
-        TransactionHandler.getInstance(adapter).startTransactionChecker();
-        IncomingMessagesManager.getInstance(MainActivity.this.getApplicationContext()).addIncomingMessageListener(this);
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-
-        try {
-            if(isReceiver != null)    {
-                MainActivity.this.unregisterReceiver(isReceiver);
-                IncomingMessagesManager.getInstance(MainActivity.this.getApplicationContext()).removeIncomingMessageListener(this);
-                TransactionHandler.getInstance(adapter).stopTransactionChecker();
+            }
+            catch (Exception e) {
+                e.printStackTrace();
             }
         }
-        catch(IllegalArgumentException iae) {
-            ;
-        }
-    }
 
-    @Override
-    protected void onDestroy() {
 
-        try {
-            if(isReceiver != null)    {
-                MainActivity.this.unregisterReceiver(isReceiver);
-                IncomingMessagesManager.getInstance(MainActivity.this.getApplicationContext()).removeIncomingMessageListener(this);
-                TransactionHandler.getInstance(adapter).stopTransactionChecker();
-            }
-        }
-        catch(IllegalArgumentException iae) {
-            ;
-        }
-
-        try {
-            PayloadFactory.getInstance(MainActivity.this, TransactionHandler.getInstance(adapter)).writeBroadcastLog();
-        }
-        catch(JSONException | IOException e) {
-            e.printStackTrace();
-        }
-
-        TransactionHandler.getInstance(adapter).quit();
-
-        super.onDestroy();
-    }
-
-    /**
-     * Listener fpr bottomsheet events
-     * this will set fab icon based on the bottomsheet's state
-     */
-    private BottomSheetBehavior.BottomSheetCallback bottomSheetCallback = new BottomSheetBehavior.BottomSheetCallback() {
         @Override
-        public void onStateChanged(@NonNull View bottomSheet, int newState) {
-            if (newState == BottomSheetBehavior.STATE_EXPANDED) {
-                fab.setImageResource(R.drawable.ic_keyboard_arrow_down);
+        protected void onResume() {
+            super.onResume();
+
+            if(isReceiver == null)    {
+                isFilter = new IntentFilter();
+                isFilter.addAction("android.provider.Telephony.SMS_RECEIVED");
+                isFilter.setPriority(2147483647);
+                isReceiver = new SMSReceiver(TransactionHandler.getInstance(adapter));
+                MainActivity.this.registerReceiver(isReceiver, isFilter);
             }
-            if (newState == BottomSheetBehavior.STATE_HIDDEN) {
-                fab.setImageResource(R.drawable.ic_txtenna_fab_new);
+            refreshData();
+            TransactionHandler.getInstance(adapter).startTransactionChecker();
+            IncomingMessagesManager.getInstance(MainActivity.this.getApplicationContext()).addIncomingMessageListener(this);
+        }
+
+        @Override
+        protected void onPause() {
+            super.onPause();
+
+            try {
+                if(isReceiver != null)    {
+                    MainActivity.this.unregisterReceiver(isReceiver);
+                    IncomingMessagesManager.getInstance(MainActivity.this.getApplicationContext()).removeIncomingMessageListener(this);
+                    TransactionHandler.getInstance(adapter).stopTransactionChecker();
+                }
+            }
+            catch(IllegalArgumentException iae) {
+                ;
             }
         }
 
         @Override
-        public void onSlide(@NonNull View bottomSheet, float slideOffset) {
+        protected void onDestroy() {
 
-        }
-    };
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
-
-    @Override
-    public void onBackPressed() {
-        if (bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED) {
-            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
-        } else {
-            super.onBackPressed();
-        }
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            startActivity(new Intent(this, SettingsActivity.class));
-            return true;
-        }
-        if (id == R.id.networkmenu) {
-            startActivity(new Intent(this, NetworkingActivity.class));
-            return true;
-        }
-        if (id == R.id.qr_scan) {
-            relayViaGoTenna = null;
-            doScanHexTx();
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
-    private void refreshData() {
-
-        if (BroadcastLogUtil.getInstance().getBroadcastLog().size() == 0) {
-            recyclerView.setVisibility(View.GONE);
-            emptyView.setVisibility(View.VISIBLE);
-            return;
-        }else {
-            recyclerView.setVisibility(View.VISIBLE);
-            emptyView.setVisibility(View.GONE);
-        }
-        TransactionHandler.getInstance(adapter).refresh();
-    }
-
-
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-
-        if (resultCode == Activity.RESULT_OK && requestCode == SCAN_HEX_TX) {
-
-            if (data != null && data.getStringExtra(ZBarConstants.SCAN_RESULT) != null) {
-
-                final String strResult = data.getStringExtra(ZBarConstants.SCAN_RESULT).trim();
-
-                doSendHex(strResult, null);
-
+            try {
+                if(isReceiver != null)    {
+                    MainActivity.this.unregisterReceiver(isReceiver);
+                    IncomingMessagesManager.getInstance(MainActivity.this.getApplicationContext()).removeIncomingMessageListener(this);
+                    TransactionHandler.getInstance(adapter).stopTransactionChecker();
+                }
             }
-        } else {
-            ;
-        }
-
-    }
-
-    private void doGetHex() {
-
-        final EditText edHexTx = new EditText(MainActivity.this);
-        edHexTx.setSingleLine(false);
-        edHexTx.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
-        edHexTx.setLines(10);
-        edHexTx.setHint(R.string.tx_hex);
-        edHexTx.setGravity(Gravity.START);
-        TextWatcher textWatcher = new TextWatcher() {
-
-            public void afterTextChanged(Editable s) {
-                edHexTx.setSelection(0);
-            }
-
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            catch(IllegalArgumentException iae) {
                 ;
             }
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                ;
+
+            try {
+                PayloadFactory.getInstance(MainActivity.this, TransactionHandler.getInstance(adapter)).writeBroadcastLog();
+            }
+            catch(JSONException | IOException e) {
+                e.printStackTrace();
+            }
+
+            TransactionHandler.getInstance(adapter).quit();
+
+            super.onDestroy();
+        }
+
+        /**
+         * Listener fpr bottomsheet events
+         * this will set fab icon based on the bottomsheet's state
+         */
+        private BottomSheetBehavior.BottomSheetCallback bottomSheetCallback = new BottomSheetBehavior.BottomSheetCallback() {
+            @Override
+            public void onStateChanged(@NonNull View bottomSheet, int newState) {
+                if (newState == BottomSheetBehavior.STATE_EXPANDED) {
+                    fab.setImageResource(R.drawable.ic_keyboard_arrow_down);
+                }
+                if (newState == BottomSheetBehavior.STATE_HIDDEN) {
+                    fab.setImageResource(R.drawable.ic_txtenna_fab_new);
+                }
+            }
+
+            @Override
+            public void onSlide(@NonNull View bottomSheet, float slideOffset) {
+
             }
         };
-        edHexTx.addTextChangedListener(textWatcher);
 
-        AlertDialog.Builder dlg = new AlertDialog.Builder(MainActivity.this)
-                .setTitle(R.string.app_name)
-                .setView(edHexTx)
-                .setMessage(R.string.enter_tx_hex)
-                .setCancelable(true)
-                .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int whichButton) {
+        @Override
+        public boolean onCreateOptionsMenu(Menu menu) {
+            // Inflate the menu; this adds items to the action bar if it is present.
+            getMenuInflater().inflate(R.menu.menu_main, menu);
+            return true;
+        }
 
-                        dialog.dismiss();
-                        relayViaGoTenna = null;
+        @Override
+        public void onBackPressed() {
+            if (bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED) {
+                bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+            } else {
+                super.onBackPressed();
+            }
+        }
 
-                        final String strHexTx = edHexTx.getText().toString().trim();
+        @Override
+        public boolean onOptionsItemSelected(MenuItem item) {
+            // Handle action bar item clicks here. The action bar will
+            // automatically handle clicks on the Home/Up button, so long
+            // as you specify a parent activity in AndroidManifest.xml.
+            int id = item.getItemId();
 
-                        Log.d("MainActivity", "hex:" + strHexTx);
+            //noinspection SimplifiableIfStatement
+            if (id == R.id.action_settings) {
+                startActivity(new Intent(this, SettingsActivity.class));
+                return true;
+            }
+            if (id == R.id.networkmenu) {
+                startActivity(new Intent(this, NetworkingActivity.class));
+                return true;
+            }
 
-                        Transaction tx = new Transaction(PrefsUtil.getInstance(MainActivity.this).getValue(PrefsUtil.USE_MAINNET, true) ? MainNetParams.get() : TestNet3Params.get(), Hex.decode(strHexTx));
-                        Log.d("MainActivity", "hash:" + tx.getHashAsString());
-                        try {
-                            tx.verify();
+            if (id == R.id.qr_scan) {
+                relayViaGoTenna = null;
+                doScanHexTx();
+                return true;
+            }
+
+            return super.onOptionsItemSelected(item);
+        }
+
+        private void refreshData() {
+
+            if (BroadcastLogUtil.getInstance().getBroadcastLog().size() == 0) {
+                recyclerView.setVisibility(View.GONE);
+                emptyView.setVisibility(View.VISIBLE);
+                return;
+            }else {
+                recyclerView.setVisibility(View.VISIBLE);
+                emptyView.setVisibility(View.GONE);
+            }
+            TransactionHandler.getInstance(adapter).refresh();
+        }
+
+        @Override
+        public void onActivityResult(int requestCode, int resultCode, Intent data) {
+
+            if (resultCode == Activity.RESULT_OK && requestCode == SCAN_HEX_TX) {
+
+                if (data != null && data.getStringExtra(ZBarConstants.SCAN_RESULT) != null) {
+
+                    final String strResult = data.getStringExtra(ZBarConstants.SCAN_RESULT).trim();
+
+                    doSendHex(strResult, null);
+
+                }
+            } else {
+                ;
+            }
+
+        }
+
+        private void doGetHex() {
+
+            final EditText edHexTx = new EditText(MainActivity.this);
+            edHexTx.setSingleLine(false);
+            edHexTx.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
+            edHexTx.setLines(10);
+            edHexTx.setHint(R.string.tx_hex);
+            edHexTx.setGravity(Gravity.START);
+            TextWatcher textWatcher = new TextWatcher() {
+
+                public void afterTextChanged(Editable s) {
+                    edHexTx.setSelection(0);
+                }
+
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                    ;
+                }
+                public void onTextChanged(CharSequence s, int start, int before, int count) {
+                    ;
+                }
+            };
+            edHexTx.addTextChangedListener(textWatcher);
+
+            AlertDialog.Builder dlg = new AlertDialog.Builder(MainActivity.this)
+                    .setTitle(R.string.app_name)
+                    .setView(edHexTx)
+                    .setMessage(R.string.enter_tx_hex)
+                    .setCancelable(true)
+                    .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int whichButton) {
+
+                            dialog.dismiss();
+                            relayViaGoTenna = null;
+
+                            final String strHexTx = edHexTx.getText().toString().trim();
+
+                            Log.d("MainActivity", "hex:" + strHexTx);
+
                             doSendHex(strHexTx, null);
-                        }
-                        catch(VerificationException ve) {
-                            Toast.makeText(MainActivity.this, R.string.invalid_tx, Toast.LENGTH_SHORT).show();
-                        }
 
+                        }
+                    }).setNegativeButton(R.string.scan, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int whichButton) {
+
+                            dialog.dismiss();
+                            relayViaGoTenna = null;
+
+                            doScanHexTx();
+                        }
+                    });
+
+            dlg.show();
+
+        }
+
+        private void doScanHexTx()   {
+            Intent intent = new Intent(MainActivity.this, ZBarScannerActivity.class);
+            intent.putExtra(ZBarConstants.SCAN_MODES, new int[]{ Symbol.QRCODE } );
+            startActivityForResult(intent, SCAN_HEX_TX);
+        }
+
+        private void showRequestCameraPermissionInfoAlertDialog() {
+
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle(R.string.permission_camera_alert_dialog_title);
+            builder.setMessage(R.string.permission_camera_dialog_message);
+            builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.dismiss();
+                    requestCameraPermission();
+                }
+            });
+            builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.dismiss();
+                }
+            });
+
+            builder.show();
+
+        }
+
+        private void showRequestSMSPermissionInfoAlertDialog() {
+
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle(R.string.permission_sms_alert_dialog_title);
+            builder.setMessage(R.string.permission_sms_dialog_message);
+            builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.dismiss();
+                    requestSmsPermission();
+                }
+            });
+            builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.dismiss();
+                }
+            });
+
+            builder.show();
+
+        }
+
+        private boolean hasCameraPermission() {
+            return ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED;
+        }
+
+        private boolean hasReadSmsPermission() {
+            return ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.READ_SMS) == PackageManager.PERMISSION_GRANTED;
+        }
+
+        private boolean hasSendSmsPermission() {
+            return ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED;
+        }
+
+        private void requestSmsPermission() {
+
+            if (ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this, Manifest.permission.SEND_SMS) &&
+                    ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this, Manifest.permission.READ_SMS)) {
+                Log.d("MainActivity", "shouldShowRequestPermissionRationale(), no permission requested");
+                return;
+            }
+
+            ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.SEND_SMS, Manifest.permission.READ_SMS}, SMS_PERMISSION_CODE);
+
+        }
+
+        private void requestCameraPermission() {
+
+            if (ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this, Manifest.permission.CAMERA)
+                    ) {
+                Log.d("MainActivity", "shouldShowRequestPermissionRationale(), no permission requested");
+                return;
+            }
+
+            ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.CAMERA}, CAMERA_PERMISSION_CODE);
+
+        }
+
+        private void doSendHex(final String hexTx, final NetworkParameters params)    {
+
+            // show transaction log after sending a transaction
+            recyclerView.setVisibility(View.VISIBLE);
+            emptyView.setVisibility(View.GONE);
+
+            if(!hexTx.matches("^[A-Fa-f0-9]+$")) {
+                return;
+            }
+
+            Transaction tx = null;
+            String msg = null;
+            try {
+                tx = new Transaction(PrefsUtil.getInstance(MainActivity.this).getValue(PrefsUtil.USE_MAINNET, true) == true ? MainNetParams.get() : TestNet3Params.get(), Hex.decode(hexTx));
+                msg = MainActivity.this.getString(R.string.broadcast) + ":" + tx.getHashAsString() + " " + getText(R.string.to) + " " + PrefsUtil.getInstance(MainActivity.this).getValue(PrefsUtil.SMS_RELAY, MainActivity.this.getText(R.string.default_relay).toString()) + " ?";
+                Log.d("MainActivity", "hash:" + tx.getHashAsString());
+                tx.verify();
+            }
+            catch(VerificationException ve) {
+                Toast.makeText(MainActivity.this, R.string.invalid_tx, Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            final TextView tvHexTx = new TextView(MainActivity.this);
+            tvHexTx.setSingleLine(false);
+            tvHexTx.setLines(10);
+            tvHexTx.setGravity(Gravity.START);
+            tvHexTx.setText(hexTx);
+
+            AlertDialog.Builder dlg = new AlertDialog.Builder(MainActivity.this)
+                    .setTitle(R.string.app_name)
+                    .setMessage(msg)
+                    .setCancelable(true);
+
+            if(relayViaGoTenna != null)    {
+                dlg.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int whichButton) {
+
+                        dialog.dismiss();
+
+                        List<String> payload  = PayloadFactory.toJSON(hexTx, relayViaGoTenna, params);
+                        PayloadFactory.getInstance(MainActivity.this, TransactionHandler.getInstance(adapter)).relayPayload(payload, relayViaGoTenna);
+                        relayViaGoTenna = null;
                     }
-                }).setNegativeButton(R.string.scan, new DialogInterface.OnClickListener() {
+
+                });
+                dlg.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int whichButton) {
 
                         dialog.dismiss();
                         relayViaGoTenna = null;
 
-                        doScanHexTx();
                     }
                 });
-
-        dlg.show();
-
-    }
-
-    private void doScanHexTx()   {
-        Intent intent = new Intent(MainActivity.this, ZBarScannerActivity.class);
-        intent.putExtra(ZBarConstants.SCAN_MODES, new int[]{ Symbol.QRCODE } );
-        startActivityForResult(intent, SCAN_HEX_TX);
-    }
-
-    private void showRequestCameraPermissionInfoAlertDialog() {
-
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle(R.string.permission_camera_alert_dialog_title);
-        builder.setMessage(R.string.permission_camera_dialog_message);
-        builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.dismiss();
-                requestCameraPermission();
             }
-        });
-        builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.dismiss();
+            else    {
+                dlg.setPositiveButton(R.string.gotenna_mesh, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int whichButton) {
+
+                        dialog.dismiss();
+
+                        List<String> payload  = PayloadFactory.toJSON(hexTx, true, params);
+                        PayloadFactory.getInstance(MainActivity.this, TransactionHandler.getInstance(adapter)).relayPayload(payload, true);
+                        relayViaGoTenna = null;
+
+                    }
+
+                });
+                dlg.setNeutralButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int whichButton) {
+
+                        dialog.dismiss();
+                        relayViaGoTenna = null;
+
+                    }
+
+                });
+                dlg.setNegativeButton(R.string.sms_broadcast, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int whichButton) {
+
+                        dialog.dismiss();
+
+                        List<String> payload  = PayloadFactory.toJSON(hexTx, false, params);
+                        PayloadFactory.getInstance(MainActivity.this, TransactionHandler.getInstance(adapter)).relayPayload(payload, false);
+                        relayViaGoTenna = null;
+                    }
+                });
             }
-        });
 
-        builder.show();
-
-    }
-
-    private void showRequestSMSPermissionInfoAlertDialog() {
-
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle(R.string.permission_sms_alert_dialog_title);
-        builder.setMessage(R.string.permission_sms_dialog_message);
-        builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.dismiss();
-                requestSmsPermission();
-            }
-        });
-        builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.dismiss();
-            }
-        });
-
-        builder.show();
-
-    }
-
-    private boolean hasCameraPermission() {
-        return ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED;
-    }
-
-    private boolean hasReadSmsPermission() {
-        return ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.READ_SMS) == PackageManager.PERMISSION_GRANTED;
-    }
-
-    private boolean hasSendSmsPermission() {
-        return ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED;
-    }
-
-    private void requestSmsPermission() {
-
-        if (ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this, Manifest.permission.SEND_SMS) &&
-                ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this, Manifest.permission.READ_SMS)) {
-            Log.d("MainActivity", "shouldShowRequestPermissionRationale(), no permission requested");
-            return;
+            dlg.show();
         }
 
-        ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.SEND_SMS, Manifest.permission.READ_SMS}, SMS_PERMISSION_CODE);
+        public void onIncomingMessage(Message incomingMessage) {
 
-    }
+            // show transaction log after receiving an incoming message
+            recyclerView.setVisibility(View.VISIBLE);
+            emptyView.setVisibility(View.GONE);
 
-    private void requestCameraPermission() {
+            try {
+                JSONObject obj = new JSONObject(incomingMessage.getText());
+                if(obj.has("i")) {
+                    String id = obj.getString("i");
+                    int idx = 0;
+                    if (obj.has("c")) {
+                        idx = obj.getInt("c");
+                    }
 
-        if (ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this, Manifest.permission.CAMERA)
-                ) {
-            Log.d("MainActivity", "shouldShowRequestPermissionRationale(), no permission requested");
-            return;
-        }
-
-        ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.CAMERA}, CAMERA_PERMISSION_CODE);
-
-    }
-
-    private void doSendHex(final String hexTx, final NetworkParameters params)    {
-
-        // show transaction log after sending a transaction
-        recyclerView.setVisibility(View.VISIBLE);
-        emptyView.setVisibility(View.GONE);
-
-        if(!hexTx.matches("^[A-Fa-f0-9]+$")) {
-            return;
-        }
-
-        final Transaction tx = new Transaction(PrefsUtil.getInstance(MainActivity.this).getValue(PrefsUtil.USE_MAINNET, true) == true ? MainNetParams.get() : TestNet3Params.get(), Hex.decode(hexTx));
-        final String msg = MainActivity.this.getString(R.string.broadcast) + ":" + tx.getHashAsString() + " " + getText(R.string.to) + " " + PrefsUtil.getInstance(MainActivity.this).getValue(PrefsUtil.SMS_RELAY, MainActivity.this.getText(R.string.default_relay).toString()) + " ?";
-
-        final TextView tvHexTx = new TextView(MainActivity.this);
-        tvHexTx.setSingleLine(false);
-        tvHexTx.setLines(10);
-        tvHexTx.setGravity(Gravity.START);
-        tvHexTx.setText(hexTx);
-
-        AlertDialog.Builder dlg = new AlertDialog.Builder(MainActivity.this)
-                .setTitle(R.string.app_name)
-                .setMessage(msg)
-                .setCancelable(true);
-
-        if(relayViaGoTenna != null)    {
-            dlg.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-                public void onClick(DialogInterface dialog, int whichButton) {
-
-                    dialog.dismiss();
-
-                    List<String> payload  = PayloadFactory.toJSON(hexTx, relayViaGoTenna, params);
-                    PayloadFactory.getInstance(MainActivity.this, TransactionHandler.getInstance(adapter)).relayPayload(payload, relayViaGoTenna);
-                    relayViaGoTenna = null;
-                }
-
-            });
-            dlg.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
-                public void onClick(DialogInterface dialog, int whichButton) {
-
-                    dialog.dismiss();
-                    relayViaGoTenna = null;
-
-                }
-            });
-        }
-        else    {
-            dlg.setPositiveButton(R.string.gotenna_mesh, new DialogInterface.OnClickListener() {
-                public void onClick(DialogInterface dialog, int whichButton) {
-
-                    dialog.dismiss();
-
-                    List<String> payload  = PayloadFactory.toJSON(hexTx, true, params);
-                    PayloadFactory.getInstance(MainActivity.this, TransactionHandler.getInstance(adapter)).relayPayload(payload, true);
-                    relayViaGoTenna = null;
-
-                }
-
-            });
-            dlg.setNeutralButton(R.string.cancel, new DialogInterface.OnClickListener() {
-                public void onClick(DialogInterface dialog, int whichButton) {
-
-                    dialog.dismiss();
-                    relayViaGoTenna = null;
-
-                }
-
-            });
-            dlg.setNegativeButton(R.string.sms_broadcast, new DialogInterface.OnClickListener() {
-                public void onClick(DialogInterface dialog, int whichButton) {
-
-                    dialog.dismiss();
-
-                    List<String> payload  = PayloadFactory.toJSON(hexTx, false, params);
-                    PayloadFactory.getInstance(MainActivity.this, TransactionHandler.getInstance(adapter)).relayPayload(payload, false);
-                    relayViaGoTenna = null;
-                }
-            });
-        }
-
-        dlg.show();
-    }
-
-    public void onIncomingMessage(Message incomingMessage) {
-
-        // show transaction log after receiving an incoming message
-        recyclerView.setVisibility(View.VISIBLE);
-        emptyView.setVisibility(View.GONE);
-
-        try {
-            JSONObject obj = new JSONObject(incomingMessage.getText());
-            if(obj.has("i")) {
-                String id = obj.getString("i");
-                int idx = 0;
-                if (obj.has("c")) {
-                    idx = obj.getInt("c");
-                }
-
-                if (!SentTxUtil.getInstance().contains(id, idx)) {
-                    // handle upload of segment to server
-                    // if(ConnectivityStatus.hasConnectivity(this))    {
+                    if (!SentTxUtil.getInstance().contains(id, idx)) {
+                        // handle upload of segment to server
+                        // if(ConnectivityStatus.hasConnectivity(this))    {
                         PayloadFactory.getInstance(this, TransactionHandler.getInstance(adapter)).broadcastPayload(obj.toString(), incomingMessage.getSenderGID());
-                    // }
-                    // else    {
+                        // }
+                        // else    {
                         // rebroadcast
-                    // }
+                        // }
+                    }
+                }
+                else if (obj.has("b") && incomingMessage.getReceiverGID() == goTennaUtil.getGID()) {
+                    // handle return receipt message
+                    TransactionHandler.getInstance(adapter).confirmFromGateway(incomingMessage.getText());
                 }
             }
-            else if (obj.has("b") && incomingMessage.getReceiverGID() == goTennaUtil.getGID()) {
-                // handle return receipt message
-                TransactionHandler.getInstance(adapter).confirmFromGateway(incomingMessage.getText());
+            catch(JSONException je) {
+                ;
             }
         }
-        catch(JSONException je) {
-            ;
-        }
     }
-}

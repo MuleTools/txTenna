@@ -32,7 +32,7 @@ public class goTennaUtil implements GTConnectionListener {
     private GTConnectionManager gtConnectionManager = null;
     private static final int SCAN_TIMEOUT = 25000; // 25 seconds
 
-    private static final String GOTENNA_APP_TOKEN = "[-- REDACTED --]";
+    private static final String GOTENNA_APP_TOKEN = "[ --- REDACTED ---]";
 
     private static goTennaUtil instance = null;
 
@@ -65,28 +65,24 @@ public class goTennaUtil implements GTConnectionListener {
         return false;
     }
 
-    public void init() {
-        try {
-            GoTenna.setApplicationToken(context.getApplicationContext(), goTennaUtil.getInstance(context).getAppToken());
-            if(GoTenna.tokenIsVerified())    {
-                gtConnectionManager = GTConnectionManager.getInstance();
-                Log.d("goTennaUtil", "goTenna token is verified:" + GoTenna.tokenIsVerified());
-                Log.d("goTennaUtil", "connected address:" + gtConnectionManager.getConnectedGotennaAddress());
-            }
+    public void init() throws StringIndexOutOfBoundsException, GTInvalidAppTokenException {
 
-            handler = new Handler(Looper.getMainLooper()) {
-                @Override
-                public void handleMessage(Message msg){
-                    if(msg.what == 0 && callbackActivity != null) {
-                        // no connection, scanning timed out
-                        callbackActivity.setStatusText("");
-                    }
+        GoTenna.setApplicationToken(context.getApplicationContext(), goTennaUtil.getInstance(context).getAppToken());
+        if(GoTenna.tokenIsVerified())    {
+            gtConnectionManager = GTConnectionManager.getInstance();
+            Log.d("goTennaUtil", "goTenna token is verified:" + GoTenna.tokenIsVerified());
+            Log.d("goTennaUtil", "connected address:" + gtConnectionManager.getConnectedGotennaAddress());
+        }
+
+        handler = new Handler(Looper.getMainLooper()) {
+            @Override
+            public void handleMessage(Message msg){
+                if(msg.what == 0 && callbackActivity != null) {
+                    // no connection, scanning timed out
+                    callbackActivity.setStatusText("");
                 }
-            };
-        }
-        catch(GTInvalidAppTokenException e) {
-            e.printStackTrace();
-        }
+            }
+        };
 
     }
 

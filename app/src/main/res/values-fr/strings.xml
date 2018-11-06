@@ -1,0 +1,84 @@
+<resources>
+    <string name="action_settings">Paramètres</string>
+    <string name="about_us">Qu\'est-ce que txTenna?</string>
+    <string name="about_title">Qui sommes-nous?</string>
+
+    <string name="permission_camera_alert_dialog_title">Demande permission caméra</string>
+    <string name="permission_camera_dialog_message">L\'application va maintenant vous demander la permission d\'utiliser votre caméra afin de scanner les codes QR.</string>
+
+    <string name="permission_sms_alert_dialog_title">Demande permission SMS</string>
+    <string name="permission_sms_dialog_message">L\'application va maintenant vous demander la permission d\'envoyer et lire les services liés aux SMS.</string>
+
+    <string name="ok">OK</string>
+    <string name="cancel">Annuler</string>
+    <string name="yes">Oui</string>
+    <string name="close">Fermer</string>
+    <string name="gotenna_mesh">GoTenna Mesh</string>
+    <string name="sms_broadcast">Émission SMS</string>
+    <string name="networking">Mise en réseau</string>
+    <string name="broadcast_log">Émission Journal</string>
+    <string name="settings">Paramètres</string>
+
+    <string name="options_telno">Relais SMS</string>
+    <string name="options_telno2">Numéro de téléphone du relais SMS</string>
+    <string name="options_pushtx">Relais pushTx</string>
+    <string name="options_pushtx2">URL du point relais pushTx</string>
+    <string name="options_txtenna">Relais txTenna</string>
+    <string name="options_txtenna2">URL du point relais txTenna</string>
+    <string name="options_mainnet">MainNet</string>
+    <string name="options_mainnet2">Utiliser MainNet pour relayer les transactions (décocher pour utiliser TestNet)</string>
+    <string name="options_z85">Utiliser encodage Z85</string>
+    <string name="options_z85_2">Économiser de l\'espace en encodant les octets de transaction en Z85</string>
+    <string name="options_region">Région géographique</string>
+    <string name="options_region2">Sélectionner la région géographique où se situe votre GoTenna.</string>
+    <string name="options_clearlogs">Supprimer contenus journal</string>
+    <string name="options_clearlogs2">Supprimer contenus journal émis.</string>
+    <string name="use_intl_format">Utiliser le format d\'appel international. Ex.:\'+447385555555\'</string>
+    <string name="default_relay">+447490741539</string>
+    <string name="default_pushtx_mainnet">https://api.samouraiwallet.com/v2/pushtx/</string>
+    <string name="default_pushtx_testnet">https://api.samouraiwallet.com/test/v2/pushtx/</string>
+    <string name="default_txtenna">https://api.samouraiwallet.com/v2/txtenna/segments</string>
+    <string name="invalid_url">URL invalide</string>
+
+    <string name="muletools">MuleTools</string>
+    <string name="menu_scan_qr">Scanner QR</string>
+    <string name="menu_network">Réseau</string>
+
+    <string name="scan">Scanner</string>
+    <string name="tx_hex">Transaction hex</string>
+    <string name="enter_tx_hex">Entrer la transaction sous format hex</string>
+
+    <string name="invalid_tx">Transaction invalide</string>
+    <string name="txTenna_selection">Bientôt disponible...</string>
+
+    <string name="sent_sms">SMS envoyé</string>
+
+    <string name="sending">Envoi en cours</string>
+    <string name="broadcasted">Émise</string>
+    <string name="to">vers</string>
+    <string name="broadcast">Émettre transaction</string>
+
+    <string name="broadcast_to_mesh">Émettre vers réseau Mesh</string>
+    <string name="relay_to_mainnet">Émettre vers bitcoin MainNet</string>
+    <string name="relay_to_testnet">Émettre vers bitcoin TestNet</string>
+    <string name="unknown">À déterminer</string>
+
+    <string name="relayed_to_mesh">Relayée via réseau GoTenna Mesh</string>
+    <string name="relayed_to_sms">Relayée via SMS</string>
+    <string name="broadcast_to_bitcoin">Émettre vers réseau bitcoin</string>
+    <string name="received_via_mesh">Reçue via réseau GoTenna Mesh</string>
+    <string name="received_via_sms">Reçue via SMS</string>
+
+    <string name="copied_to_clipboard">Copiée dans le presse-papiers</string>
+
+    <string name="pair_device">Appairer appareil</string>
+    <string name="unpair_device">Désappairer appareil</string>
+    <string name="get_mesh_device">Obtenir un appareil Mesh</string>
+    <string name="no_mesh_device_detected">Aucun appareil Mesh détecté</string>
+    <string name="rescan_or_buy">Allumez votre GoTenna Mesh et rescannez ou faîtes l\'acquisition d\'un appareil GoTenna Mesh</string>
+    <string name="mesh_device_detected">Appareil Mesh détecté</string>
+    <string name="mesh_device_detected2">Connecté à GoTenna Mesh</string>
+
+    <string name="sure_clear_logs">Êtes-vous sûr de vouloir supprimer les contenus du journal émis?</string>
+
+</resources>
