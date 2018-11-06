@@ -18,9 +18,13 @@ import com.gotenna.sdk.exceptions.GTInvalidAppTokenException;
 import com.gotenna.sdk.interfaces.GTErrorListener;
 import com.gotenna.sdk.responses.GTResponse;
 import com.gotenna.sdk.types.GTDataTypes;
+import com.gotenna.sdk.user.User;
+import com.gotenna.sdk.user.UserDataStore;
 import com.samourai.txtenna.NetworkingActivity;
 import com.gotenna.sdk.bluetooth.GTConnectionManager.GTDeviceType;
 import com.gotenna.sdk.bluetooth.GTConnectionManager.GTConnectionListener;
+
+import java.util.UUID;
 
 public class goTennaUtil implements GTConnectionListener {
 
@@ -127,10 +131,27 @@ public class goTennaUtil implements GTConnectionListener {
             }, new GTErrorListener() {
                 @Override
                 public void onError(GTError error) {
-                    Log.d("MainActivity", error.toString() + "," + error.getCode());
+                    Log.d("goTennaUtil", error.toString() + "," + error.getCode());
                 }
             });
         }
+    }
+
+    public static void setGID(long gid) {
+        GTCommandCenter.getInstance().setGoTennaGID(gid, UUID.randomUUID().toString(), new GTErrorListener() {
+            @Override
+            public void onError(GTError error) {
+                User gtUser = UserDataStore.getInstance().getCurrentUser();
+                Log.d("goTennaUtil", error.toString() + "," + error.getCode() + " gid: " + gtUser.getGID());
+            }
+        });
+
+        User gtUser = UserDataStore.getInstance().getCurrentUser();
+        Log.d("goTennaUtil", "gtUser.getGID: " + gtUser.getGID());
+    }
+
+    public static long getGID() {
+        return UserDataStore.getInstance().getCurrentUser().getGID();
     }
 
     public void disconnect(NetworkingActivity activity) {
