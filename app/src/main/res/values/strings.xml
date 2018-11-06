@@ -68,6 +68,7 @@
     <string name="broadcast_to_bitcoin">Broadcast to bitcoin network</string>
     <string name="received_via_mesh">Received via goTenna mesh network</string>
     <string name="received_via_sms">Received via SMS</string>
+    <string name="confirmed_via_bitcoin">Confirmed on Bitcoin network</string>
 
     <string name="copied_to_clipboard">Copied to clipboard</string>
 
