@@ -65,6 +65,18 @@ public class SendMessageInteractor
 
     }
 
+    public void sendMessage(@NonNull final Message message, final boolean willEncrypt, @NonNull final SendMessageListener sendMessageListener)
+    {
+        SendMessageItem sendMessageItem = new SendMessageItem();
+        sendMessageItem.message = message;
+        sendMessageItem.willEncrypt = willEncrypt;
+        sendMessageItem.sendMessageListener = sendMessageListener;
+        sendMessageItem.isBroadcast = false;
+
+        messageQueue.add(sendMessageItem);
+        attemptToSendMessage();
+    }
+
     private void attemptToSendMessage()
     {
         if (!isSending && !messageQueue.isEmpty())
