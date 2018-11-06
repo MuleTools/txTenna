@@ -172,17 +172,23 @@ public class SettingsActivity extends PreferenceActivity {
     private void doRegion()	{
 
         final CharSequence[] regions = {
+                "Unknown",
                 "North America",
                 "Europe",
+                "South Africa",
                 "Australia",
                 "New Zealand",
                 "Singapore",
+                "Taiwan",
+                "Japan",
+                "South Korea",
+                "Hong Kong",
         };
 
-        final int sel = PrefsUtil.getInstance(SettingsActivity.this).getValue(PrefsUtil.REGION, 0);
+        final int sel = PrefsUtil.getInstance(SettingsActivity.this).getValue(PrefsUtil.REGION, 1);
         final int _sel;
         if(sel >= regions.length)    {
-            _sel = 0;
+            _sel = 1;
         }
         else    {
             _sel = sel;
@@ -195,21 +201,36 @@ public class SettingsActivity extends PreferenceActivity {
 
                                 PrefsUtil.getInstance(SettingsActivity.this).setValue(PrefsUtil.REGION, which);
 
-                                if(GoTenna.tokenIsVerified() && goTennaUtil.getInstance(SettingsActivity.this).isPaired())    {
+                                if(GoTenna.tokenIsVerified())    {
 
                                     Place place = null;
-                                    switch(sel)    {
-                                        case 1:
+                                    switch(which)    {
+                                        case 2:
                                             place = Place.EUROPE;
                                             break;
-                                        case 2:
-                                            place = Place.AUSTRALIA;
-                                            break;
                                         case 3:
-                                            place = Place.NEW_ZEALAND;
+                                            place = Place.SOUTH_AFRICA;
                                             break;
                                         case 4:
+                                            place = Place.AUSTRALIA;
+                                            break;
+                                        case 5:
+                                            place = Place.NEW_ZEALAND;
+                                            break;
+                                        case 6:
                                             place = Place.SINGAPORE;
+                                            break;
+                                        case 7:
+                                            place = Place.TAIWAN;
+                                            break;
+                                        case 8:
+                                            place = Place.JAPAN;
+                                            break;
+                                        case 9:
+                                            place = Place.SOUTH_KOREA;
+                                            break;
+                                        case 10:
+                                            place = Place.HONG_KONG;
                                             break;
                                         default:
                                             place = Place.NORTH_AMERICA;
