@@ -4,21 +4,18 @@ import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.constraint.Group;
 import android.support.design.widget.BottomSheetBehavior;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -39,20 +36,18 @@ import android.widget.Toast;
 import com.dm.zbar.android.scanner.ZBarConstants;
 import com.dm.zbar.android.scanner.ZBarScannerActivity;
 import com.gotenna.sdk.GoTenna;
-import com.gotenna.sdk.bluetooth.GTConnectionManager;
-import com.gotenna.sdk.commands.GTCommandCenter;
-import com.gotenna.sdk.commands.GTError;
-import com.gotenna.sdk.interfaces.GTErrorListener;
 import com.samourai.sms.SMSReceiver;
 import com.samourai.txtenna.adapters.BroadcastLogsAdapter;
 import com.samourai.txtenna.payload.PayloadFactory;
 import com.samourai.txtenna.prefs.PrefsUtil;
 import com.samourai.txtenna.utils.BroadcastLogUtil;
 import com.samourai.txtenna.utils.IncomingMessagesManager;
+import com.samourai.txtenna.utils.Message;
+import com.samourai.txtenna.utils.SentTxUtil;
+import com.samourai.txtenna.utils.TransactionHandler;
 import com.samourai.txtenna.utils.goTennaUtil;
 import com.yanzhenjie.zbar.Symbol;
 
-import org.apache.commons.io.IOUtils;
 import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.Transaction;
 import org.bitcoinj.core.VerificationException;
@@ -63,16 +58,13 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.net.HttpURLConnection;
 import java.security.SecureRandom;
 import java.util.List;
-import java.util.UUID;
 
-import java.net.HttpURLConnection;
-import java.net.URL;
+import static java.lang.StrictMath.abs;
 
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements IncomingMessagesManager.IncomingMessageListener {
 
     private final static int SCAN_HEX_TX = 2011;
 
@@ -158,7 +150,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         try {
-            PayloadFactory.getInstance(MainActivity.this).readBroadcastLog();
+            PayloadFactory.getInstance(MainActivity.this, TransactionHandler.getInstance(adapter)).readBroadcastLog();
         }
         catch(JSONException | IOException e) {
             e.printStackTrace();
@@ -168,21 +160,17 @@ public class MainActivity extends AppCompatActivity {
         Log.d("MainActivity", "checking connected address:" + goTennaUtil.getInstance(MainActivity.this).getGtConnectionManager().getConnectedGotennaAddress());
 
         if(GoTenna.tokenIsVerified()) {
-
             // set new random GID every time we recreate the main activity
-            GTCommandCenter.getInstance().setGoTennaGID(new SecureRandom().nextLong(), UUID.randomUUID().toString(), new GTErrorListener() {
-                @Override
-                public void onError(GTError error) {
-                    Log.d("MainActivity", error.toString() + "," + error.getCode());
-                }
-            });
+            long gid = abs(new SecureRandom().nextLong()) % 9999999999L;
+            goTennaUtil.getInstance(MainActivity.this).setGID(gid);
 
             // set the geoloc region
-            int region = PrefsUtil.getInstance(MainActivity.this).getValue(PrefsUtil.REGION, 0);
+            int region = PrefsUtil.getInstance(MainActivity.this).getValue(PrefsUtil.REGION, 1);
             goTennaUtil.getInstance(MainActivity.this).setGeoloc(region);
 
             // if NOT already paired, try to connect to a goTenna
             if (!goTennaUtil.getInstance(MainActivity.this).isPaired()) {
+                IncomingMessagesManager.getInstance(MainActivity.this.getApplicationContext()).addIncomingMessageListener(this);
                 IncomingMessagesManager.getInstance(MainActivity.this.getApplicationContext()).startListening();
                 goTennaUtil.getInstance(MainActivity.this).connect(null);
             }
@@ -203,10 +191,23 @@ public class MainActivity extends AppCompatActivity {
                 doSendHex(s[0], params);
             }
         }
-
-        refreshData();
-
     }
+
+    @Override
+    protected void onPostCreate(@Nullable Bundle savedInstanceState) {
+        super.onPostCreate(savedInstanceState);
+        try {
+            TransactionHandler transactionHandler = TransactionHandler.getInstance(adapter);
+            transactionHandler.start();
+
+            refreshData();
+            transactionHandler.startTransactionChecker();
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
 
     @Override
     protected void onResume() {
@@ -216,10 +217,12 @@ public class MainActivity extends AppCompatActivity {
             isFilter = new IntentFilter();
             isFilter.addAction("android.provider.Telephony.SMS_RECEIVED");
             isFilter.setPriority(2147483647);
-            isReceiver = new SMSReceiver();
+            isReceiver = new SMSReceiver(TransactionHandler.getInstance(adapter));
             MainActivity.this.registerReceiver(isReceiver, isFilter);
         }
-
+        refreshData();
+        TransactionHandler.getInstance(adapter).startTransactionChecker();
+        IncomingMessagesManager.getInstance(MainActivity.this.getApplicationContext()).addIncomingMessageListener(this);
     }
 
     @Override
@@ -229,12 +232,13 @@ public class MainActivity extends AppCompatActivity {
         try {
             if(isReceiver != null)    {
                 MainActivity.this.unregisterReceiver(isReceiver);
+                IncomingMessagesManager.getInstance(MainActivity.this.getApplicationContext()).removeIncomingMessageListener(this);
+                TransactionHandler.getInstance(adapter).stopTransactionChecker();
             }
         }
         catch(IllegalArgumentException iae) {
             ;
         }
-
     }
 
     @Override
@@ -243,6 +247,8 @@ public class MainActivity extends AppCompatActivity {
         try {
             if(isReceiver != null)    {
                 MainActivity.this.unregisterReceiver(isReceiver);
+                IncomingMessagesManager.getInstance(MainActivity.this.getApplicationContext()).removeIncomingMessageListener(this);
+                TransactionHandler.getInstance(adapter).stopTransactionChecker();
             }
         }
         catch(IllegalArgumentException iae) {
@@ -250,11 +256,13 @@ public class MainActivity extends AppCompatActivity {
         }
 
         try {
-            PayloadFactory.getInstance(MainActivity.this).writeBroadcastLog();
+            PayloadFactory.getInstance(MainActivity.this, TransactionHandler.getInstance(adapter)).writeBroadcastLog();
         }
         catch(JSONException | IOException e) {
             e.printStackTrace();
         }
+
+        TransactionHandler.getInstance(adapter).quit();
 
         super.onDestroy();
     }
@@ -331,84 +339,7 @@ public class MainActivity extends AppCompatActivity {
             recyclerView.setVisibility(View.VISIBLE);
             emptyView.setVisibility(View.GONE);
         }
-
-        final Handler handler = new Handler();
-
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-
-                Looper.prepare();
-
-                for (int i = 0; i < BroadcastLogUtil.getInstance().getBroadcastLog().size(); i++) {
-
-                    if (!BroadcastLogUtil.getInstance().getBroadcastLog().get(i).confirmed || BroadcastLogUtil.getInstance().getBroadcastLog().get(i).ts < 0L) {
-
-                        try {
-                            String URL = null;
-                            if (BroadcastLogUtil.getInstance().getBroadcastLog().get(i).net.equalsIgnoreCase("t")) {
-                                URL = "https://api.samourai.io/test/v2/tx/" + BroadcastLogUtil.getInstance().getBroadcastLog().get(i).hash;
-                            } else {
-                                URL = "https://api.samourai.io/v2/tx/" + BroadcastLogUtil.getInstance().getBroadcastLog().get(i).hash;
-                            }
-                            URL url = new URL(URL);
-
-                            String result = null;
-                            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-
-                            try {
-                                connection.setRequestMethod("GET");
-                                connection.setRequestProperty("charset", "utf-8");
-                                connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1650.57 Safari/537.36");
-
-                                connection.setConnectTimeout(60000);
-                                connection.setReadTimeout(60000);
-
-                                connection.setInstanceFollowRedirects(false);
-
-                                connection.connect();
-
-                                if (connection.getResponseCode() == 200) {
-                                    result = IOUtils.toString(connection.getInputStream(), "UTF-8");
-                                    JSONObject obj = new JSONObject(result);
-                                    if (obj != null && obj.has("block")) {
-
-                                        JSONObject bObj = obj.getJSONObject("block");
-                                        if (bObj.has("height") && bObj.has("time")) {
-                                            BroadcastLogUtil.getInstance().getBroadcastLog().get(i).confirmed = true;
-                                            BroadcastLogUtil.getInstance().getBroadcastLog().get(i).ts = bObj.getLong("time");
-                                        }
-
-                                        handler.post(new Runnable() {
-                                            @Override
-                                            public void run() {
-                                                adapter.notifyDataSetChanged();
-                                            }
-                                        });
-
-                                    }
-
-                                }
-
-                                Thread.sleep(250);
-
-                            } finally {
-                                connection.disconnect();
-                            }
-
-                        } catch (Exception e) {
-                            ;
-                        }
-
-                    }
-
-                }
-
-                Looper.loop();
-
-            }
-        }).start();
-
+        TransactionHandler.getInstance(adapter).refresh();
     }
 
 
@@ -583,6 +514,10 @@ public class MainActivity extends AppCompatActivity {
 
     private void doSendHex(final String hexTx, final NetworkParameters params)    {
 
+        // show transaction log after sending a transaction
+        recyclerView.setVisibility(View.VISIBLE);
+        emptyView.setVisibility(View.GONE);
+
         if(!hexTx.matches("^[A-Fa-f0-9]+$")) {
             return;
         }
@@ -607,10 +542,9 @@ public class MainActivity extends AppCompatActivity {
 
                     dialog.dismiss();
 
-                    List<String> payload  = PayloadFactory.getInstance(MainActivity.this).toJSON(hexTx, relayViaGoTenna, params);
-                    PayloadFactory.getInstance(MainActivity.this).relayPayload(payload, relayViaGoTenna);
+                    List<String> payload  = PayloadFactory.toJSON(hexTx, relayViaGoTenna, params);
+                    PayloadFactory.getInstance(MainActivity.this, TransactionHandler.getInstance(adapter)).relayPayload(payload, relayViaGoTenna);
                     relayViaGoTenna = null;
-
                 }
 
             });
@@ -629,8 +563,8 @@ public class MainActivity extends AppCompatActivity {
 
                     dialog.dismiss();
 
-                    List<String> payload  = PayloadFactory.getInstance(MainActivity.this).toJSON(hexTx, true, params);
-                    PayloadFactory.getInstance(MainActivity.this).relayPayload(payload, true);
+                    List<String> payload  = PayloadFactory.toJSON(hexTx, true, params);
+                    PayloadFactory.getInstance(MainActivity.this, TransactionHandler.getInstance(adapter)).relayPayload(payload, true);
                     relayViaGoTenna = null;
 
                 }
@@ -650,16 +584,48 @@ public class MainActivity extends AppCompatActivity {
 
                     dialog.dismiss();
 
-                    List<String> payload  = PayloadFactory.getInstance(MainActivity.this).toJSON(hexTx, false, params);
-                    PayloadFactory.getInstance(MainActivity.this).relayPayload(payload, false);
+                    List<String> payload  = PayloadFactory.toJSON(hexTx, false, params);
+                    PayloadFactory.getInstance(MainActivity.this, TransactionHandler.getInstance(adapter)).relayPayload(payload, false);
                     relayViaGoTenna = null;
-
                 }
             });
         }
 
         dlg.show();
-
     }
 
+    public void onIncomingMessage(Message incomingMessage) {
+
+        // show transaction log after receiving an incoming message
+        recyclerView.setVisibility(View.VISIBLE);
+        emptyView.setVisibility(View.GONE);
+
+        try {
+            JSONObject obj = new JSONObject(incomingMessage.getText());
+            if(obj.has("i")) {
+                String id = obj.getString("i");
+                int idx = 0;
+                if (obj.has("c")) {
+                    idx = obj.getInt("c");
+                }
+
+                if (!SentTxUtil.getInstance().contains(id, idx)) {
+                    // handle upload of segment to server
+                    // if(ConnectivityStatus.hasConnectivity(this))    {
+                        PayloadFactory.getInstance(this, TransactionHandler.getInstance(adapter)).broadcastPayload(obj.toString(), incomingMessage.getSenderGID());
+                    // }
+                    // else    {
+                        // rebroadcast
+                    // }
+                }
+            }
+            else if (obj.has("b") && incomingMessage.getReceiverGID() == goTennaUtil.getGID()) {
+                // handle return receipt message
+                TransactionHandler.getInstance(adapter).confirmFromGateway(incomingMessage.getText());
+            }
+        }
+        catch(JSONException je) {
+            ;
+        }
+    }
 }

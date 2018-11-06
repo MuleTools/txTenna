@@ -4,11 +4,8 @@ import com.gotenna.sdk.commands.GTCommandCenter;
 import com.gotenna.sdk.messages.GTBaseMessageData;
 import com.gotenna.sdk.messages.GTMessageData;
 import com.gotenna.sdk.messages.GTTextOnlyMessageData;
-import com.samourai.txtenna.payload.PayloadFactory;
 
 import org.bouncycastle.util.encoders.Hex;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.util.ArrayList;
 
@@ -69,7 +66,7 @@ public class IncomingMessagesManager implements GTCommandCenter.GTMessageListene
     {
         GTCommandCenter.getInstance().setMessageListener(this);
     }
-/*
+
     public void addIncomingMessageListener(IncomingMessageListener incomingMessageListener)
     {
         synchronized (incomingMessageListeners)
@@ -103,7 +100,7 @@ public class IncomingMessagesManager implements GTCommandCenter.GTMessageListene
             }
         }
     }
-*/
+
     //==============================================================================================
     // GTMessageListener Implementation
     //==============================================================================================
@@ -127,36 +124,7 @@ public class IncomingMessagesManager implements GTCommandCenter.GTMessageListene
             GTTextOnlyMessageData gtTextOnlyMessageData = (GTTextOnlyMessageData) gtBaseMessageData;
             Message incomingMessage = Message.createMessageFromData(gtTextOnlyMessageData);
             Log.d("IncomingMessagesManager", "GTBaseMessageData:" + incomingMessage.getText());
-//            notifyIncomingMessage(incomingMessage);
-
-            try {
-                JSONObject obj = new JSONObject(incomingMessage.getText());
-                if(obj.has("i"))    {
-                    String id = obj.getString("i");
-                    int idx = -1;
-                    if(obj.has("c"))    {
-                        idx = obj.getInt("c");
-                    }
-                    else    {
-                        idx = 0;
-                    }
-
-                    if(!SentTxUtil.getInstance().contains(id, idx))    {
-//                        if(ConnectivityStatus.hasConnectivity())    {
-                            PayloadFactory.getInstance(context).uploadSegment(incomingMessage.getText());
-//                        }
-//                        else    {
-//                            // rebroadcast
-//                        }
-                    }
-
-                }
-
-            }
-            catch(JSONException je) {
-                ;
-            }
-
+            notifyIncomingMessage(incomingMessage);
         }
 
     }

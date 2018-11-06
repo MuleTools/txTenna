@@ -17,6 +17,8 @@ import com.samourai.txtenna.utils.SendMessageInteractor;
 import com.samourai.txtenna.utils.BroadcastLogUtil;
 import com.samourai.txtenna.utils.SentTxUtil;
 import com.samourai.txtenna.utils.Z85;
+import com.samourai.txtenna.utils.TransactionHandler;
+import com.samourai.txtenna.utils.goTennaUtil;
 import com.samourai.txtenna.prefs.PrefsUtil;
 
 import org.apache.commons.io.IOUtils;
@@ -44,7 +46,6 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -59,7 +60,7 @@ public class PayloadFactory {
     private final static String dataDir = "wallet";
     private final static String strFilename = "txtenna.dat";
 
-    public class Seg0   {
+    public static class Seg0   {
         public int s = -1;
         public String i = null;
         public String n = "m";
@@ -67,7 +68,7 @@ public class PayloadFactory {
         public String t = null;
     };
 
-    public class SegN   {
+    public static class SegN   {
         public int c = -1;
         public String i = "";
         public String t = null;
@@ -84,12 +85,14 @@ public class PayloadFactory {
     private static PayloadFactory instance = null;
 
     private static Context context = null;
+    private static TransactionHandler transactionHandler = null;
 
     private PayloadFactory() { ; }
 
-    public static PayloadFactory getInstance(Context ctx)   {
+   public static PayloadFactory getInstance(Context ctx, TransactionHandler handler)   {
 
         context = ctx;
+        transactionHandler = handler;
 
         if(instance == null)    {
             instance = new PayloadFactory();
@@ -99,7 +102,7 @@ public class PayloadFactory {
         return instance;
     }
 
-    public List<String> toJSON(String strHexTx, boolean isGoTenna, NetworkParameters params) {
+    public static List<String> toJSON(String strHexTx, boolean isGoTenna, NetworkParameters params) {
 
         int segment0Len = isGoTenna ? goTennaSegment0Len : smsSegment0Len;
         int segment1Len = isGoTenna ? goTennaSegment1Len : smsSegment1Len;
@@ -213,7 +216,7 @@ public class PayloadFactory {
 
     }
 
-    public String fromJSON(List<String> payload)   {
+    public static String fromJSON(List<String> payload)   {
 
         Gson gson = new Gson();
         String txHex = "";
@@ -338,8 +341,8 @@ public class PayloadFactory {
 
                     if(isGoTenna)    {
                         SendMessageInteractor smi = new SendMessageInteractor();
-
-                        Message messageToSend = Message.createReadyToSendMessage(new SecureRandom().nextLong(),
+                        final long gid = goTennaUtil.getGID();
+                        Message messageToSend = Message.createReadyToSendMessage(gid,
                                 GIDManager.SHOUT_GID,
                                 s);
 
@@ -352,15 +355,22 @@ public class PayloadFactory {
                                         Log.d("PayloadFactory", "response received:" + ii);
                                         registerSent(s);
 
+                                        // add messages that were broadcast over the mesh network to the broadcast log
+                                        BroadcastLogUtil.getInstance().add(s, true, false, true, gid);
+                                        transactionHandler.refresh();
                                     }
 
                                 });
 
-                        Log.d("PayloadFactory", "goTenna relayed:" + s);
+                        Log.d("PayloadFactory", "goTenna relayed: " + s + " gid: " + gid);
                     }
                     else    {
                         SMSSender.getInstance(context).send(s, PrefsUtil.getInstance(context).getValue(PrefsUtil.SMS_RELAY, context.getString(R.string.default_relay)));
                         Log.d("PayloadFactory", "sms relayed:" + s);
+
+                        // add messages that were relayed over the SMS network to the broadcast log
+                        BroadcastLogUtil.getInstance().add(payload.get(0), true, true, false, 0);
+                        transactionHandler.refresh();
                     }
 
                     handler.post(new Runnable() {
@@ -378,8 +388,6 @@ public class PayloadFactory {
                     }
 
                 }
-
-                BroadcastLogUtil.getInstance().add(payload.get(0), true, isGoTenna);
 
                 Looper.loop();
 
@@ -424,7 +432,7 @@ public class PayloadFactory {
                     }
                 });
 
-                BroadcastLogUtil.getInstance().add(payload.get(0), false, goTenna);
+                BroadcastLogUtil.getInstance().add(payload.get(0), false, true, goTenna, 0);
 
                 Looper.loop();
 
@@ -433,9 +441,10 @@ public class PayloadFactory {
 
     }
 
-    public void uploadSegment(final String segment)   {
+    public void broadcastPayload(final String segment, long gid)   {
 
         final Handler handler = new Handler();
+        final long _gid = gid;
 
         new Thread(new Runnable() {
             @Override
@@ -446,7 +455,6 @@ public class PayloadFactory {
                 HttpResponse response = null;
 
                 try {
-
                     String postUrl = context.getText(R.string.default_txtenna).toString();
                     HttpClient httpClient = HttpClientBuilder.create().build();
                     HttpPost post = new HttpPost(postUrl);
@@ -457,8 +465,44 @@ public class PayloadFactory {
                     Log.d("PayloadFactory", "HTTP POST return:" + response.getStatusLine().getStatusCode());
                     if(response.getStatusLine().getStatusCode() == 200)    {
                         registerSent(segment);
-                    }
 
+                        // add messages that were received from the mesh network to the broadcast log
+                        BroadcastLogUtil.getInstance().add(segment, false, true, true, _gid);
+                        transactionHandler.refresh();
+
+                        // send return receipt
+                        JSONObject obj = new JSONObject(segment);
+                        if(obj.has("i") && !obj.has("c"))  {
+                            final String hash = obj.getString("h");
+                            JSONObject rObj = new JSONObject();
+                            rObj.put("b", (long) 0);
+                            rObj.put("h", hash);
+
+                            SendMessageInteractor smi = new SendMessageInteractor();
+                            final String reply = rObj.toString();
+                            final long senderGID = goTennaUtil.getGID();
+                            final long receiverGID = _gid;
+                            final Message messageToSend = Message.createReadyToSendMessage(senderGID,
+                                    receiverGID,
+                                    reply);
+
+                            Thread.sleep(30000);
+                            smi.sendMessage(messageToSend, true,
+                                    new SendMessageInteractor.SendMessageListener() {
+                                        @Override
+                                        public void onMessageResponseReceived() {
+                                            if (messageToSend.getMessageStatus() == Message.MessageStatus.SENT_SUCCESSFULLY) {
+                                                Log.d("PayloadFactory", "Broadcast receipt succeeded! sent by: " + senderGID + " received by: " + receiverGID + " for tx id: " + hash);
+                                            }
+                                            else {
+                                                Log.d("PayloadFactory", "Broadcast receipt failed! sent by: " + senderGID + " received by: " + receiverGID + " for tx id: " + hash);
+                                            }
+                                        }
+                                    });
+
+                            Log.d("MainActivity", "Broadcast receipt sent by: " + senderGID + " to: " + receiverGID + " for tx id: " + hash);
+                        }
+                    }
                 }
                 catch(Exception e) {
                     Log.d("PayloadFactory", e.getMessage());
@@ -466,18 +510,18 @@ public class PayloadFactory {
 //                    response = e.getMessage();
                 }
 
-                final String _response = Integer.toString(response.getStatusLine().getStatusCode());
+                if (response != null) {
+                    final String _response = Integer.toString(response.getStatusLine().getStatusCode());
+                    Log.d("PayloadFactory", _response);
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(context, _response + ":" + segment, Toast.LENGTH_SHORT).show();
+                        }
+                    });
 
-                Log.d("PayloadFactory", _response);
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        Toast.makeText(context, _response + ":" + segment, Toast.LENGTH_SHORT).show();
-                    }
-                });
-
-                Looper.loop();
-
+                    Looper.loop();
+                }
             }
         }).start();
 
@@ -603,13 +647,11 @@ public class PayloadFactory {
             JSONObject obj = new JSONObject(s);
             if(obj.has("i"))    {
                 String id = obj.getString("i");
+                int idx = 0;
                 if(obj.has("c"))    {
-                    SentTxUtil.getInstance().add(id, obj.getInt("c"));
+                    idx = obj.getInt("c");
                 }
-                else    {
-                    SentTxUtil.getInstance().add(id, 0);
-                }
-
+                SentTxUtil.getInstance().add(id, idx);
             }
         }
         catch(JSONException je) {

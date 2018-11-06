@@ -5,17 +5,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.v4.content.LocalBroadcastManager;
 import android.telephony.SmsMessage;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.samourai.txtenna.MainActivity;
-import com.samourai.txtenna.R;
 import com.samourai.txtenna.payload.PayloadFactory;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import com.samourai.txtenna.utils.TransactionHandler;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -34,6 +31,12 @@ public class SMSReceiver extends BroadcastReceiver {
     private static HashMap<String, HashMap<String, HashMap<String, String>>> incoming = new HashMap<String, HashMap<String, HashMap<String, String>>>();
 
     private static List<String> seen = new ArrayList<String>();
+
+    private static TransactionHandler transactionHandler = null;
+
+    public SMSReceiver(TransactionHandler transactionHandler) {
+        this.transactionHandler = transactionHandler;
+    }
 
     // @Override
     public void onReceive(final Context context, Intent intent) {
@@ -202,7 +205,7 @@ public class SMSReceiver extends BroadcastReceiver {
                 }
             });
 
-            PayloadFactory.getInstance(context).broadcastPayload(segmentList, (net != null && net.equals("t")) ? false : true, false);
+            PayloadFactory.getInstance(context, transactionHandler).broadcastPayload(segmentList, (net != null && net.equals("t")) ? false : true, false);
 
         }
         else    {
