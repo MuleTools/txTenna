@@ -112,28 +112,45 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
                 android:layout_marginEnd="8dp"
-                android:layout_marginLeft="88dp"
+                android:layout_marginLeft="8dp"
                 android:layout_marginRight="8dp"
-                android:layout_marginStart="88dp"
+                android:layout_marginStart="8dp"
                 android:text="@string/get_mesh_device"
                 android:textAllCaps="false"
                 android:textColor="@color/ltGrey"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toStartOf="@+id/btn_rescan"
+                app:layout_constraintEnd_toStartOf="@+id/btn_unpair"
                 app:layout_constraintHorizontal_bias="0.689"
                 app:layout_constraintStart_toStartOf="@+id/guideline3" />
 
             <Button
-                android:id="@+id/btn_rescan"
+                android:id="@+id/btn_unpair"
                 style="@style/Widget.AppCompat.Button.Borderless"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
+                android:layout_marginLeft="8dp"
+                android:layout_marginRight="8dp"
+                android:text="@string/unpair_device"
                 android:textAllCaps="false"
                 android:textColor="@color/colorPrimary"
                 app:layout_constraintBottom_toBottomOf="@+id/btn_get_mesh_device"
-                app:layout_constraintEnd_toStartOf="@+id/guideline8"
+                app:layout_constraintEnd_toStartOf="@+id/btn_pair"
                 app:layout_constraintTop_toTopOf="@+id/btn_get_mesh_device"
+                app:layout_constraintVertical_bias="0.0" />
+
+            <Button
+                android:id="@+id/btn_pair"
+                style="@style/Widget.AppCompat.Button.Borderless"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:text="@string/scan"
+                android:textAllCaps="false"
+                android:textColor="@color/colorPrimary"
+                app:layout_constraintBottom_toBottomOf="@+id/btn_unpair"
+                app:layout_constraintEnd_toStartOf="@+id/guideline8"
+                app:layout_constraintTop_toTopOf="@+id/btn_unpair"
                 app:layout_constraintVertical_bias="0.0" />
 
             <android.support.constraint.Group
@@ -141,7 +158,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:visibility="visible"
-                app:constraint_referenced_ids="btn_get_mesh_device,btn_rescan,mesh_card_detail" />
+                app:constraint_referenced_ids="btn_get_mesh_device,mesh_card_detail" />
 
             <android.support.constraint.Guideline
                 android:id="@+id/guideline8"

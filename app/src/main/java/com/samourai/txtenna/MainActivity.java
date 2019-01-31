@@ -36,6 +36,7 @@ import android.widget.Toast;
 import com.dm.zbar.android.scanner.ZBarConstants;
 import com.dm.zbar.android.scanner.ZBarScannerActivity;
 import com.gotenna.sdk.GoTenna;
+import com.gotenna.sdk.exceptions.GTInvalidAppTokenException;
 import com.samourai.sms.SMSReceiver;
 import com.samourai.txtenna.adapters.BroadcastLogsAdapter;
 import com.samourai.txtenna.payload.PayloadFactory;
@@ -156,7 +157,13 @@ public class MainActivity extends AppCompatActivity implements IncomingMessagesM
             e.printStackTrace();
         }
 
-        goTennaUtil.getInstance(MainActivity.this).init();
+        try {
+            goTennaUtil.getInstance(MainActivity.this).init();
+        }
+        catch (GTInvalidAppTokenException e) {
+            // should set the value goTennaUtil::GOTENNA_APP_TOKEN
+            e.printStackTrace();
+        }
         Log.d("MainActivity", "checking connected address:" + goTennaUtil.getInstance(MainActivity.this).getGtConnectionManager().getConnectedGotennaAddress());
 
         if (GoTenna.tokenIsVerified()) {
@@ -168,8 +175,9 @@ public class MainActivity extends AppCompatActivity implements IncomingMessagesM
             int region = PrefsUtil.getInstance(MainActivity.this).getValue(PrefsUtil.REGION, 1);
             goTennaUtil.getInstance(MainActivity.this).setGeoloc(region);
 
-            // if NOT already paired, try to connect to a goTenna
-            if (!goTennaUtil.getInstance(MainActivity.this).isPaired()) {
+            // if NOT already paired, and previous hardware address saved, try to connect to a goTenna
+            if (!goTennaUtil.getInstance(MainActivity.this).isPaired() &&
+                    goTennaUtil.getInstance(MainActivity.this).GetHardwareAddress() != null) {
                 IncomingMessagesManager.getInstance(MainActivity.this.getApplicationContext()).addIncomingMessageListener(this);
                 IncomingMessagesManager.getInstance(MainActivity.this.getApplicationContext()).startListening();
                 goTennaUtil.getInstance(MainActivity.this).connect(null);
@@ -198,10 +206,13 @@ public class MainActivity extends AppCompatActivity implements IncomingMessagesM
             super.onPostCreate(savedInstanceState);
             try {
                 TransactionHandler transactionHandler = TransactionHandler.getInstance(adapter);
-            transactionHandler.start();
 
-            refreshData();
-            transactionHandler.startTransactionChecker();
+                // TODO: why do we get a crash here when we return to this activity?
+                transactionHandler.start();
+
+                refreshData();
+                transactionHandler.startTransactionChecker();
+                IncomingMessagesManager.getInstance(MainActivity.this.getApplicationContext()).addIncomingMessageListener(this);
             }
             catch (Exception e) {
                 e.printStackTrace();

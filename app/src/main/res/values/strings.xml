@@ -76,9 +76,11 @@
     <string name="unpair_device">Unpair device</string>
     <string name="get_mesh_device">Get Mesh Device</string>
     <string name="no_mesh_device_detected">No mesh device detected</string>
-    <string name="rescan_or_buy">Turn on your GoTenna Mesh and rescan or buy a GoTenna Mesh device</string>
-    <string name="mesh_device_detected">Mesh device detected</string>
-    <string name="mesh_device_detected2">Connected to GoTenna Mesh</string>
+    <string name="rescan_or_buy">Turn on your goTenna Mesh and rescan or buy a goTenna Mesh device</string>
+    <string name="unpair_or_rescan">Turn on your previously paired goTenna Mesh device or unpair and rescan</string>
+    <string name="unpair_or_rescan_title">Paired to device</string>
+    <string name="mesh_device_detected_title">Mesh device detected</string>
+    <string name="mesh_device_detected">Connected to goTenna Mesh</string>
     <string name="mesh_device_disconnecting">Disconnecting</string>
     <string name="mesh_device_scanning">Scanning</string>
 

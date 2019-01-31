@@ -60,9 +60,13 @@ public class goTennaUtil implements GTConnectionListener {
     public boolean isPaired()  {
 
         if(getGtConnectionManager().getGtConnectionState() == GTConnectionState.CONNECTED) {
-            return (getGtConnectionManager().getConnectedGotennaAddress() != null);
+            return true;
         }
         return false;
+    }
+
+    public String GetHardwareAddress() {
+        return getGtConnectionManager().getConnectedGotennaAddress();
     }
 
     public void init() throws StringIndexOutOfBoundsException, GTInvalidAppTokenException {
@@ -79,7 +83,7 @@ public class goTennaUtil implements GTConnectionListener {
             public void handleMessage(Message msg){
                 if(msg.what == 0 && callbackActivity != null) {
                     // no connection, scanning timed out
-                    callbackActivity.setStatusText("");
+                    callbackActivity.setStatusText(false, false);
                 }
             }
         };
@@ -159,9 +163,15 @@ public class goTennaUtil implements GTConnectionListener {
     public void connect(NetworkingActivity activity) {
         callbackActivity = activity;
         gtConnectionManager.addGtConnectionListener(this);
-        gtConnectionManager.clearConnectedGotennaAddress();
         gtConnectionManager.scanAndConnect(GTDeviceType.MESH);
         handler.postDelayed(scanTimeoutRunnable, SCAN_TIMEOUT);
+    }
+
+    public void sendEchoCommand() {
+        if(GTConnectionManager.getInstance().isConnected())
+        {
+            GTCommandCenter.getInstance().sendEchoCommand(null, null);
+        }
     }
 
     @Override
@@ -170,16 +180,17 @@ public class goTennaUtil implements GTConnectionListener {
             switch (gtConnectionState) {
                 case CONNECTED: {
                     Log.d("NetworkingActivity", "existing connected address:" + getGtConnectionManager().getConnectedGotennaAddress());
-                    callbackActivity.setStatusText(getGtConnectionManager().getConnectedGotennaAddress());
+                    callbackActivity.setStatusText(true, false);
                 }
                 break;
                 case DISCONNECTED: {
                     Log.d("NetworkingActivity", "no connection");
-                    callbackActivity.setStatusText("");
+                    callbackActivity.setStatusText(false, false);
                 }
                 break;
                 case SCANNING: {
                     Log.d("NetworkingActivity", "scanning for connection");
+                    callbackActivity.setStatusText(false, true);
                 }
                 break;
             }

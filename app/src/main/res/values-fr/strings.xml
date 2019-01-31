@@ -75,9 +75,11 @@
     <string name="unpair_device">Désappairer appareil</string>
     <string name="get_mesh_device">Obtenir un appareil Mesh</string>
     <string name="no_mesh_device_detected">Aucun appareil Mesh détecté</string>
-    <string name="rescan_or_buy">Allumez votre GoTenna Mesh et rescannez ou faîtes l\'acquisition d\'un appareil GoTenna Mesh</string>
-    <string name="mesh_device_detected">Appareil Mesh détecté</string>
-    <string name="mesh_device_detected2">Connecté à GoTenna Mesh</string>
+    <string name="rescan_or_buy">Allumez votre goTenna Mesh et rescannez ou faîtes l\'acquisition d\'un appareil goTenna Mesh</string>
+    <string name="unpair_or_rescan">Allumez votre périphérique goTenna Mesh précédemment couplé ou annulez la connexion et relancez l\'analyse.</string>
+    <string name="unpair_or_rescan_title">Jumelé à l\'appareil</string>
+    <string name="mesh_device_detected_title">Appareil Mesh détecté</string>
+    <string name="mesh_device_detected">Connecté à GoTenna Mesh</string>
 
     <string name="sure_clear_logs">Êtes-vous sûr de vouloir supprimer les contenus du journal émis?</string>
 
