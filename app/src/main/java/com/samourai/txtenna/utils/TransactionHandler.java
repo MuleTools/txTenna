@@ -10,26 +10,22 @@ import com.samourai.txtenna.adapters.BroadcastLogsAdapter;
 import org.apache.commons.io.IOUtils;
 import org.json.JSONObject;
 
-import java.net.HttpURLConnection;
-import java.net.URL;
+import java.io.IOException;
+
+import ch.boye.httpclientandroidlib.HttpResponse;
+import ch.boye.httpclientandroidlib.client.HttpClient;
+import ch.boye.httpclientandroidlib.client.config.RequestConfig;
+import ch.boye.httpclientandroidlib.client.methods.HttpGet;
+import ch.boye.httpclientandroidlib.impl.client.HttpClientBuilder;
 
 public class TransactionHandler extends HandlerThread {
 
-    private static Handler handler = null;
-    private static BroadcastLogsAdapter adapter = null;
-    private static TransactionHandler instance = null;
+    private Handler handler = null;
+    private BroadcastLogsAdapter adapter = null;
+
     private static int CHECK_INTERVAL = 30000;
 
-    public static TransactionHandler getInstance(BroadcastLogsAdapter adapter)   {
-
-        if(instance == null)    {
-            instance = new TransactionHandler("TransactionHandler", adapter);
-        }
-
-        return instance;
-    }
-
-    private TransactionHandler(String name, BroadcastLogsAdapter adapter) {
+    public TransactionHandler(String name, BroadcastLogsAdapter adapter) {
         super(name);
         this.adapter = adapter;
     }
@@ -150,98 +146,97 @@ public class TransactionHandler extends HandlerThread {
             public void run() {
 
                 Looper.prepare();
+
                 boolean isChanged = false;
+                HttpResponse response = null;
+
                 try {
+                    RequestConfig.Builder requestBuilder = RequestConfig.custom();
+                    requestBuilder.setConnectTimeout(60000);
+                    requestBuilder.setConnectionRequestTimeout(60000);
+
+                    HttpClientBuilder builder = HttpClientBuilder.create();
+                    builder.setDefaultRequestConfig(requestBuilder.build());
+                    HttpClient httpClient = builder.build();
+
                     for (BroadcastLogUtil.BroadcastLogEntry entry : BroadcastLogUtil.getInstance().getBroadcastLog()) {
                         // query server with transaction hash if transaction is not marked as confirmed, or timestamp not set
-                        if (!entry.confirmed || entry.ts < 0L ) {
+                        if (!entry.confirmed || entry.ts < 0L) {
                             // check PonyDirect server to update confirmed transactions
 
+                            // use this confirmed hash for testing: "e9a66845e05d5abc0ad04ec80f774a7e585c6e8db975962d069a522137b80c1d"
                             final String hash = entry.hash;
-                            String URL = null;
+                            String getUrl = null;
                             if (entry.net.equalsIgnoreCase("t")) {
-                                URL = "https://api.samourai.io/test/v2/tx/" + hash;
+                                getUrl = "https://api.samourai.io/test/v2/tx/" + hash;
                             } else {
-                                URL = "https://api.samourai.io/v2/tx/" + hash;
+                                getUrl = "https://api.samourai.io/v2/tx/" + hash;
                             }
-
-                            java.net.URL url = new URL(URL);
 
                             String result = null;
-                            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 
-                            try {
-                                connection.setRequestMethod("GET");
-                                connection.setRequestProperty("charset", "utf-8");
-                                connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1650.57 Safari/537.36");
+                            HttpGet get = new HttpGet(getUrl);
+                            response = httpClient.execute(get);
+                            Log.d("TransactionHandler", "HTTP GET return:" + response.getStatusLine().getStatusCode());
+                            if (response.getStatusLine().getStatusCode() == 200) {
+                                result = IOUtils.toString(response.getEntity().getContent(), "UTF-8");;
+                                JSONObject obj = new JSONObject(result);
+                                if (obj != null && obj.has("block")) {
+                                    JSONObject bObj = obj.getJSONObject("block");
+                                    if (bObj.has("height") && bObj.has("time")) {
+                                        entry.confirmed = true;
+                                        entry.ts = bObj.getLong("time");
+                                        isChanged = true;
 
-                                connection.setConnectTimeout(60000);
-                                connection.setReadTimeout(60000);
+                                        // send return receipt
+                                        final long blockHeight = bObj.getLong("height");
+                                        JSONObject rObj = new JSONObject();
+                                        rObj.put("b", (long) blockHeight);
+                                        rObj.put("h", entry.hash);
+                                        String segment = rObj.toString();
 
-                                connection.setInstanceFollowRedirects(false);
+                                        SendMessageInteractor smi = new SendMessageInteractor();
+                                        final long senderGID = goTennaUtil.getGID();
+                                        final long receiverGID = entry.gid;
+                                        final Message messageToSend = Message.createReadyToSendMessage(senderGID,
+                                                receiverGID,
+                                                segment);
 
-                                connection.connect();
-
-                                if (connection.getResponseCode() == 200) {
-                                    result = IOUtils.toString(connection.getInputStream(), "UTF-8");
-                                    JSONObject obj = new JSONObject(result);
-                                    if (obj != null && obj.has("block")) {
-
-                                        JSONObject bObj = obj.getJSONObject("block");
-                                        if (bObj.has("height") && bObj.has("time")) {
-                                            entry.confirmed = true;
-                                            entry.ts = bObj.getLong("time");
-                                            isChanged = true;
-
-                                            // send return receipt
-                                            final long blockHeight = bObj.getLong("height");
-                                            JSONObject rObj = new JSONObject();
-                                            rObj.put("b", (long) blockHeight);
-                                            rObj.put("h", entry.hash);
-                                            String segment = rObj.toString();
-
-                                            SendMessageInteractor smi = new SendMessageInteractor();
-                                            final long senderGID = goTennaUtil.getGID();
-                                            final long receiverGID = entry.gid;
-                                            final Message messageToSend = Message.createReadyToSendMessage(senderGID,
-                                                    receiverGID,
-                                                    segment);
-
-                                            smi.sendMessage(messageToSend, true,
-                                                    new SendMessageInteractor.SendMessageListener() {
-                                                        @Override
-                                                        public void onMessageResponseReceived() {
-                                                            if (messageToSend.getMessageStatus() == Message.MessageStatus.SENT_SUCCESSFULLY) {
-                                                                Log.d("TransactionHandler", "Confirmation receipt succeeded! sent by: " + senderGID + " received by: " + receiverGID + " for hash: " + hash);
-                                                            }
-                                                            else {
-                                                                Log.d("TransactionHandler", "Confirmation receipt failed! sent by: " + senderGID + " received by: " + receiverGID + " for hash: " + hash);
-                                                            }
+                                        smi.sendMessage(messageToSend, true,
+                                                new SendMessageInteractor.SendMessageListener() {
+                                                    @Override
+                                                    public void onMessageResponseReceived() {
+                                                        if (messageToSend.getMessageStatus() == Message.MessageStatus.SENT_SUCCESSFULLY) {
+                                                            Log.d("TransactionHandler", "Confirmation receipt succeeded! sent by: " + senderGID + " received by: " + receiverGID + " for hash: " + hash);
+                                                        } else {
+                                                            Log.d("TransactionHandler", "Confirmation receipt failed! sent by: " + senderGID + " received by: " + receiverGID + " for hash: " + hash);
                                                         }
-                                                    });
+                                                    }
+                                                });
 
-                                            Log.d("MainActivity", "Confirmation receipt sent by: " + senderGID + " to: " + receiverGID + " for tx id: " + hash  + " height: " + blockHeight);
-                                        }
+                                        Log.d("MainActivity", "Confirmation receipt sent by: " + senderGID + " to: " + receiverGID + " for tx id: " + hash + " height: " + blockHeight);
                                     }
                                 }
-
-                                if (isChanged) {
-                                    refresh();
-                                }
-
-                                Thread.sleep(250);
-
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            } finally {
-                                connection.disconnect();
                             }
+
+                            // sleep before checking next transaction
+                            Thread.sleep(250);
                         }
                     }
-                } catch (Exception e) {
-                    ;
+                    if (isChanged) {
+                        refresh();
+                    }
                 }
-            }
+                catch(IOException e) {
+                    Log.d("TransactionHandler", e.getMessage());
+                    e.printStackTrace();
+                }
+                catch(Exception e) {
+                    Log.d("TransactionHandler", e.getMessage());
+                    e.printStackTrace();
+                }
+
+            } // run
         }).start();
     }
 }
