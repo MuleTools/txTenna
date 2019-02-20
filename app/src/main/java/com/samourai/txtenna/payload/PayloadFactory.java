@@ -51,6 +51,7 @@ import java.util.List;
 
 import ch.boye.httpclientandroidlib.HttpResponse;
 import ch.boye.httpclientandroidlib.client.HttpClient;
+import ch.boye.httpclientandroidlib.client.config.RequestConfig;
 import ch.boye.httpclientandroidlib.client.methods.HttpPost;
 import ch.boye.httpclientandroidlib.entity.StringEntity;
 import ch.boye.httpclientandroidlib.impl.client.HttpClientBuilder;
@@ -456,11 +457,20 @@ public class PayloadFactory {
 
                 try {
                     String postUrl = context.getText(R.string.default_txtenna).toString();
-                    HttpClient httpClient = HttpClientBuilder.create().build();
+
+                    RequestConfig.Builder requestBuilder = RequestConfig.custom();
+                    requestBuilder.setConnectTimeout(60000);
+                    requestBuilder.setConnectionRequestTimeout(60000);
+
+                    HttpClientBuilder builder = HttpClientBuilder.create();
+                    builder.setDefaultRequestConfig(requestBuilder.build());
+                    HttpClient httpClient = builder.build();
+
                     HttpPost post = new HttpPost(postUrl);
                     StringEntity postingString = new StringEntity(segment);
                     post.setEntity(postingString);
                     post.setHeader("Content-type", "application/json");
+                    Log.d("PayloadFactory", "HTTP execute: " + post.toString());
                     response = httpClient.execute(post);
                     Log.d("PayloadFactory", "HTTP POST return:" + response.getStatusLine().getStatusCode());
                     if(response.getStatusLine().getStatusCode() == 200)    {
@@ -500,9 +510,14 @@ public class PayloadFactory {
                                         }
                                     });
 
-                            Log.d("MainActivity", "Broadcast receipt sent by: " + senderGID + " to: " + receiverGID + " for tx id: " + hash);
+                            Log.d("PayloadFactory", "Broadcast receipt sent by: " + senderGID + " to: " + receiverGID + " for tx id: " + hash);
                         }
                     }
+
+                }
+                catch (IOException e) {
+                    Log.d("PayloadFactory", e.getMessage());
+                    e.printStackTrace();
                 }
                 catch(Exception e) {
                     Log.d("PayloadFactory", e.getMessage());
@@ -519,9 +534,8 @@ public class PayloadFactory {
                             Toast.makeText(context, _response + ":" + segment, Toast.LENGTH_SHORT).show();
                         }
                     });
-
-                    Looper.loop();
                 }
+                Looper.loop();
             }
         }).start();
 
