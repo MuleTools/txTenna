@@ -50,7 +50,6 @@ import com.samourai.txtenna.utils.goTennaUtil;
 import com.yanzhenjie.zbar.Symbol;
 
 import org.bitcoinj.core.NetworkParameters;
-import org.bitcoinj.core.ProtocolException;
 import org.bitcoinj.core.Transaction;
 import org.bitcoinj.core.VerificationException;
 import org.bitcoinj.params.MainNetParams;
@@ -60,7 +59,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.security.SecureRandom;
 import java.util.List;
 
 import static java.lang.StrictMath.abs;
@@ -85,6 +83,7 @@ public class MainActivity extends AppCompatActivity implements IncomingMessagesM
     private BroadcastReceiver isReceiver = null;
 
     private Boolean relayViaGoTenna = null;
+    private TransactionHandler transactionHandler = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -106,6 +105,8 @@ public class MainActivity extends AppCompatActivity implements IncomingMessagesM
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         adapter = new BroadcastLogsAdapter(this);
         recyclerView.setAdapter(adapter);
+
+        transactionHandler = new TransactionHandler("TransactionHandler", adapter);
 
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -152,7 +153,7 @@ public class MainActivity extends AppCompatActivity implements IncomingMessagesM
         }
 
         try {
-            PayloadFactory.getInstance(MainActivity.this, TransactionHandler.getInstance(adapter)).readBroadcastLog();
+            PayloadFactory.getInstance(MainActivity.this, transactionHandler).readBroadcastLog();
         } catch (JSONException | IOException e) {
             e.printStackTrace();
         }
@@ -167,20 +168,15 @@ public class MainActivity extends AppCompatActivity implements IncomingMessagesM
         Log.d("MainActivity", "checking connected address:" + goTennaUtil.getInstance(MainActivity.this).getGtConnectionManager().getConnectedGotennaAddress());
 
         if (GoTenna.tokenIsVerified()) {
-            // set new random GID every time we recreate the main activity
-            long gid = abs(new SecureRandom().nextLong()) % 9999999999L;
-            goTennaUtil.getInstance(MainActivity.this).setGID(gid);
-
-            // set the geoloc region
-            int region = PrefsUtil.getInstance(MainActivity.this).getValue(PrefsUtil.REGION, 1);
-            goTennaUtil.getInstance(MainActivity.this).setGeoloc(region);
-
             // if NOT already paired, and previous hardware address saved, try to connect to a goTenna
             if (!goTennaUtil.getInstance(MainActivity.this).isPaired() &&
                     goTennaUtil.getInstance(MainActivity.this).GetHardwareAddress() != null) {
+                // set geolocation after we connect to a device
+                int region = PrefsUtil.getInstance(MainActivity.this).getValue(PrefsUtil.REGION, 1);
+
                 IncomingMessagesManager.getInstance(MainActivity.this.getApplicationContext()).addIncomingMessageListener(this);
                 IncomingMessagesManager.getInstance(MainActivity.this.getApplicationContext()).startListening();
-                goTennaUtil.getInstance(MainActivity.this).connect(null);
+                goTennaUtil.getInstance(MainActivity.this).connect(null, region);
             }
         }
 
@@ -205,9 +201,6 @@ public class MainActivity extends AppCompatActivity implements IncomingMessagesM
         protected void onPostCreate(@Nullable Bundle savedInstanceState) {
             super.onPostCreate(savedInstanceState);
             try {
-                TransactionHandler transactionHandler = TransactionHandler.getInstance(adapter);
-
-                // TODO: why do we get a crash here when we return to this activity?
                 transactionHandler.start();
 
                 refreshData();
@@ -228,11 +221,11 @@ public class MainActivity extends AppCompatActivity implements IncomingMessagesM
                 isFilter = new IntentFilter();
                 isFilter.addAction("android.provider.Telephony.SMS_RECEIVED");
                 isFilter.setPriority(2147483647);
-                isReceiver = new SMSReceiver(TransactionHandler.getInstance(adapter));
+                isReceiver = new SMSReceiver(transactionHandler);
                 MainActivity.this.registerReceiver(isReceiver, isFilter);
             }
             refreshData();
-            TransactionHandler.getInstance(adapter).startTransactionChecker();
+            transactionHandler.startTransactionChecker();
             IncomingMessagesManager.getInstance(MainActivity.this.getApplicationContext()).addIncomingMessageListener(this);
         }
 
@@ -244,7 +237,7 @@ public class MainActivity extends AppCompatActivity implements IncomingMessagesM
                 if(isReceiver != null)    {
                     MainActivity.this.unregisterReceiver(isReceiver);
                     IncomingMessagesManager.getInstance(MainActivity.this.getApplicationContext()).removeIncomingMessageListener(this);
-                    TransactionHandler.getInstance(adapter).stopTransactionChecker();
+                    transactionHandler.stopTransactionChecker();
                 }
             }
             catch(IllegalArgumentException iae) {
@@ -259,7 +252,7 @@ public class MainActivity extends AppCompatActivity implements IncomingMessagesM
                 if(isReceiver != null)    {
                     MainActivity.this.unregisterReceiver(isReceiver);
                     IncomingMessagesManager.getInstance(MainActivity.this.getApplicationContext()).removeIncomingMessageListener(this);
-                    TransactionHandler.getInstance(adapter).stopTransactionChecker();
+                    transactionHandler.stopTransactionChecker();
                 }
             }
             catch(IllegalArgumentException iae) {
@@ -267,13 +260,14 @@ public class MainActivity extends AppCompatActivity implements IncomingMessagesM
             }
 
             try {
-                PayloadFactory.getInstance(MainActivity.this, TransactionHandler.getInstance(adapter)).writeBroadcastLog();
+                PayloadFactory.getInstance(MainActivity.this, transactionHandler).writeBroadcastLog();
             }
             catch(JSONException | IOException e) {
                 e.printStackTrace();
             }
 
-            TransactionHandler.getInstance(adapter).quit();
+            transactionHandler.quit();
+            transactionHandler = null;
 
             super.onDestroy();
         }
@@ -351,7 +345,7 @@ public class MainActivity extends AppCompatActivity implements IncomingMessagesM
                 recyclerView.setVisibility(View.VISIBLE);
                 emptyView.setVisibility(View.GONE);
             }
-            TransactionHandler.getInstance(adapter).refresh();
+            transactionHandler.refresh();
         }
 
         @Override
@@ -534,6 +528,7 @@ public class MainActivity extends AppCompatActivity implements IncomingMessagesM
                 tx.verify();
             }
             catch(VerificationException ve) {
+                Log.d("MainActivity", "Invalid transaction, hash:" + tx.getHashAsString());
                 Toast.makeText(MainActivity.this, R.string.invalid_tx, Toast.LENGTH_SHORT).show();
                 return;
             }
@@ -556,7 +551,7 @@ public class MainActivity extends AppCompatActivity implements IncomingMessagesM
                         dialog.dismiss();
 
                         List<String> payload  = PayloadFactory.toJSON(hexTx, relayViaGoTenna, params);
-                        PayloadFactory.getInstance(MainActivity.this, TransactionHandler.getInstance(adapter)).relayPayload(payload, relayViaGoTenna);
+                        PayloadFactory.getInstance(MainActivity.this, transactionHandler).relayPayload(payload, relayViaGoTenna);
                         relayViaGoTenna = null;
                     }
 
@@ -577,7 +572,7 @@ public class MainActivity extends AppCompatActivity implements IncomingMessagesM
                         dialog.dismiss();
 
                         List<String> payload  = PayloadFactory.toJSON(hexTx, true, params);
-                        PayloadFactory.getInstance(MainActivity.this, TransactionHandler.getInstance(adapter)).relayPayload(payload, true);
+                        PayloadFactory.getInstance(MainActivity.this, transactionHandler).relayPayload(payload, true);
                         relayViaGoTenna = null;
 
                     }
@@ -598,7 +593,7 @@ public class MainActivity extends AppCompatActivity implements IncomingMessagesM
                         dialog.dismiss();
 
                         List<String> payload  = PayloadFactory.toJSON(hexTx, false, params);
-                        PayloadFactory.getInstance(MainActivity.this, TransactionHandler.getInstance(adapter)).relayPayload(payload, false);
+                        PayloadFactory.getInstance(MainActivity.this, transactionHandler).relayPayload(payload, false);
                         relayViaGoTenna = null;
                     }
                 });
@@ -625,7 +620,7 @@ public class MainActivity extends AppCompatActivity implements IncomingMessagesM
                     if (!SentTxUtil.getInstance().contains(id, idx)) {
                         // handle upload of segment to server
                         // if(ConnectivityStatus.hasConnectivity(this))    {
-                        PayloadFactory.getInstance(this, TransactionHandler.getInstance(adapter)).broadcastPayload(obj.toString(), incomingMessage.getSenderGID());
+                        PayloadFactory.getInstance(this, transactionHandler).broadcastPayload(obj.toString(), incomingMessage.getSenderGID());
                         // }
                         // else    {
                         // rebroadcast
@@ -634,7 +629,7 @@ public class MainActivity extends AppCompatActivity implements IncomingMessagesM
                 }
                 else if (obj.has("b") && incomingMessage.getReceiverGID() == goTennaUtil.getGID()) {
                     // handle return receipt message
-                    TransactionHandler.getInstance(adapter).confirmFromGateway(incomingMessage.getText());
+                    transactionHandler.confirmFromGateway(incomingMessage.getText());
                 }
             }
             catch(JSONException je) {
