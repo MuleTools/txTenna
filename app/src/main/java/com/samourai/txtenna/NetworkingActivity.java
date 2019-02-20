@@ -85,7 +85,11 @@ public class NetworkingActivity extends AppCompatActivity {
                 }
 
                 if (hasLocationpermission() && hasBluetoothPermisson()) {
-                    goTennaUtil.getInstance(NetworkingActivity.this).connect(NetworkingActivity.this);
+
+                    // set geolocation after we connect to a device
+                    int region = PrefsUtil.getInstance(NetworkingActivity.this).getValue(PrefsUtil.REGION, 1);
+
+                    goTennaUtil.getInstance(NetworkingActivity.this).connect(NetworkingActivity.this, region);
                     btPair.setText(R.string.mesh_device_scanning);
                     btPair.setEnabled(false);
                 }

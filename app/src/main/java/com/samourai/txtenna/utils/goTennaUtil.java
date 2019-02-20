@@ -24,7 +24,10 @@ import com.samourai.txtenna.NetworkingActivity;
 import com.gotenna.sdk.bluetooth.GTConnectionManager.GTDeviceType;
 import com.gotenna.sdk.bluetooth.GTConnectionManager.GTConnectionListener;
 
+import java.security.SecureRandom;
 import java.util.UUID;
+
+import static java.lang.StrictMath.abs;
 
 public class goTennaUtil implements GTConnectionListener {
 
@@ -39,6 +42,7 @@ public class goTennaUtil implements GTConnectionListener {
     private static Context context = null;
     private Handler handler;
     private NetworkingActivity callbackActivity;
+    private int regionIndex = 1;
 
     private goTennaUtil() { ; }
 
@@ -101,17 +105,32 @@ public class goTennaUtil implements GTConnectionListener {
     public void setGeoloc(int region){
         Place place = null;
         switch(region)    {
-            case 1:
+            case 2:
                 place = Place.EUROPE;
                 break;
-            case 2:
-                place = Place.AUSTRALIA;
-                break;
             case 3:
-                place = Place.NEW_ZEALAND;
+                place = Place.SOUTH_AFRICA;
                 break;
             case 4:
+                place = Place.AUSTRALIA;
+                break;
+            case 5:
+                place = Place.NEW_ZEALAND;
+                break;
+            case 6:
                 place = Place.SINGAPORE;
+                break;
+            case 7:
+                place = Place.TAIWAN;
+                break;
+            case 8:
+                place = Place.JAPAN;
+                break;
+            case 9:
+                place = Place.SOUTH_KOREA;
+                break;
+            case 10:
+                place = Place.HONG_KONG;
                 break;
             default:
                 place = Place.NORTH_AMERICA;
@@ -119,19 +138,20 @@ public class goTennaUtil implements GTConnectionListener {
         }
 
         if (isPaired()) {
+            final Place currentPlace = place;
             GTCommandCenter.getInstance().sendSetGeoRegion(place, new GTCommand.GTCommandResponseListener() {
                 @Override
                 public void onResponse(GTResponse response) {
                     if (response.getResponseCode() == GTDataTypes.GTCommandResponseCode.POSITIVE) {
-                        Log.d("goTennaUtil", "Region set OK");
+                        Log.d("goTennaUtil", "SetGeoRegion to " + currentPlace + " Success!");
                     } else {
-                        Log.d("goTennaUtil", "Region set:" + response.toString());
+                        Log.d("goTennaUtil", "SetGeoRegion to " + currentPlace + " Failed with response: " + response.toString());
                     }
                 }
             }, new GTErrorListener() {
                 @Override
                 public void onError(GTError error) {
-                    Log.d("goTennaUtil", error.toString() + "," + error.getCode());
+                    Log.d("goTennaUtil", "SetGeoRegion to " + currentPlace + " Failed with error code: " + error.getCode());
                 }
             });
         }
@@ -160,8 +180,13 @@ public class goTennaUtil implements GTConnectionListener {
         gtConnectionManager.disconnect();
     }
 
-    public void connect(NetworkingActivity activity) {
+    public void connect(NetworkingActivity activity, int region) {
+        // set new random GID every time we connect to a goTenna device
+        long gid = abs(new SecureRandom().nextLong()) % 9999999999L;
+        setGID(gid);
+
         callbackActivity = activity;
+        regionIndex = region;
         gtConnectionManager.addGtConnectionListener(this);
         gtConnectionManager.scanAndConnect(GTDeviceType.MESH);
         handler.postDelayed(scanTimeoutRunnable, SCAN_TIMEOUT);
@@ -199,6 +224,10 @@ public class goTennaUtil implements GTConnectionListener {
             getGtConnectionManager().removeGtConnectionListener(this);
             handler.removeCallbacks(scanTimeoutRunnable);
             callbackActivity = null;
+        }
+
+        if (gtConnectionState == GTConnectionState.CONNECTED) {
+           setGeoloc(regionIndex);
         }
     }
 
