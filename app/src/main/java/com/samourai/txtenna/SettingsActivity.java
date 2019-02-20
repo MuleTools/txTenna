@@ -25,6 +25,7 @@ import com.gotenna.sdk.types.GTDataTypes;
 import com.samourai.txtenna.prefs.PrefsUtil;
 import com.samourai.txtenna.utils.BroadcastLogUtil;
 import com.samourai.txtenna.utils.IncomingMessagesManager;
+import com.samourai.txtenna.utils.SentTxUtil;
 import com.samourai.txtenna.utils.goTennaUtil;
 
 import java.security.SecureRandom;
@@ -146,6 +147,9 @@ public class SettingsActivity extends PreferenceActivity {
                                 dialog.dismiss();
                                 BroadcastLogUtil.getInstance().getBroadcastLog().clear();
 
+                                // clear log of sent transactions (to test resending tx's)
+                                SentTxUtil.getInstance().reset();
+
                             }
                         })
                         .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
@@ -199,74 +203,18 @@ public class SettingsActivity extends PreferenceActivity {
                 .setSingleChoiceItems(regions, _sel, new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int which) {
 
+                                // set the geoloc region in prefs
                                 PrefsUtil.getInstance(SettingsActivity.this).setValue(PrefsUtil.REGION, which);
 
+                                // send new geoloc to device
                                 if(GoTenna.tokenIsVerified())    {
-
-                                    Place place = null;
-                                    switch(which)    {
-                                        case 2:
-                                            place = Place.EUROPE;
-                                            break;
-                                        case 3:
-                                            place = Place.SOUTH_AFRICA;
-                                            break;
-                                        case 4:
-                                            place = Place.AUSTRALIA;
-                                            break;
-                                        case 5:
-                                            place = Place.NEW_ZEALAND;
-                                            break;
-                                        case 6:
-                                            place = Place.SINGAPORE;
-                                            break;
-                                        case 7:
-                                            place = Place.TAIWAN;
-                                            break;
-                                        case 8:
-                                            place = Place.JAPAN;
-                                            break;
-                                        case 9:
-                                            place = Place.SOUTH_KOREA;
-                                            break;
-                                        case 10:
-                                            place = Place.HONG_KONG;
-                                            break;
-                                        default:
-                                            place = Place.NORTH_AMERICA;
-                                            break;
-                                    }
-
-                                    GTCommandCenter.getInstance().sendSetGeoRegion(place, new GTCommand.GTCommandResponseListener()
-                                    {
-                                        @Override
-                                        public void onResponse(GTResponse response)
-                                        {
-                                            if (response.getResponseCode() == GTDataTypes.GTCommandResponseCode.POSITIVE)
-                                            {
-                                                Log.d("SettingsActivity", "Region set OK");
-                                            }
-                                            else
-                                            {
-                                                Log.d("SettingsActivity", "Region not set:" + response.toString());
-                                            }
-                                        }
-                                    }, new GTErrorListener()
-                                    {
-                                        @Override
-                                        public void onError(GTError error)
-                                        {
-                                            Log.d("SettingsActivity", error.toString() + "," + error.getCode());
-                                        }
-                                    });
-
+                                    goTennaUtil.getInstance(SettingsActivity.this).setGeoloc(which);
                                 }
 
                                 dialog.dismiss();
                             }
                         }
                 ).show();
-
     }
 
 }
