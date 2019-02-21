@@ -12,6 +12,7 @@ import com.gotenna.sdk.interfaces.GTErrorListener;
 import com.gotenna.sdk.responses.GTResponse;
 import com.gotenna.sdk.types.GTDataTypes.GTCommandResponseCode;
 import com.gotenna.sdk.utils.Utils;
+import com.gotenna.sdk.GoTenna;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,6 +38,7 @@ public class SendMessageInteractor
     private final Handler messageResendHandler;
     private final List<SendMessageItem> messageQueue;
     private boolean isSending;
+    private static final int BROADCAST_HOPS = 6;
 
     //==============================================================================================
     // Constructor
@@ -146,7 +148,7 @@ public class SendMessageInteractor
                     markMessageAsSentAndSendNext(sendMessageItem);
                 }
             }
-        }, 3);
+        }, GoTenna.hasSuperToken() ? BROADCAST_HOPS : 1);
     }
 
     private void sendMessage(final SendMessageItem sendMessageItem)
