@@ -12,6 +12,7 @@ import com.gotenna.sdk.interfaces.GTErrorListener;
 import com.gotenna.sdk.responses.GTResponse;
 import com.gotenna.sdk.types.GTDataTypes.GTCommandResponseCode;
 import com.gotenna.sdk.utils.Utils;
+import com.gotenna.sdk.GoTenna;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,6 +38,7 @@ public class SendMessageInteractor
     private final Handler messageResendHandler;
     private final List<SendMessageItem> messageQueue;
     private boolean isSending;
+    private static final int BROADCAST_HOPS = 6;
 
     //==============================================================================================
     // Constructor
@@ -93,7 +95,7 @@ public class SendMessageInteractor
 
     private void sendBroadcast(final SendMessageItem sendMessageItem)
     {
-        gtCommandCenter.sendBroadcastMessage(sendMessageItem.message.toBytes(), new GTCommandResponseListener()
+        GTCommandResponseListener responseListener = new GTCommandResponseListener()
         {
             @Override
             public void onResponse(GTResponse response)
@@ -115,7 +117,9 @@ public class SendMessageInteractor
 
                 markMessageAsSentAndSendNext(sendMessageItem);
             }
-        }, new GTErrorListener()
+        };
+
+        GTErrorListener errorListener = new GTErrorListener()
         {
             @Override
             public void onError(GTError error)
@@ -134,7 +138,14 @@ public class SendMessageInteractor
                     markMessageAsSentAndSendNext(sendMessageItem);
                 }
             }
-        }, 3);
+        };
+        if(GoTenna.hasSuperToken()) {
+            Log.w(TAG, String.format(Locale.US,"SDK SuperToken will cause message to be re-broadcast up to %d hops", BROADCAST_HOPS));
+            gtCommandCenter.sendBroadcastMessage(sendMessageItem.message.toBytes(), responseListener, errorListener, BROADCAST_HOPS);
+        }
+        else{
+            gtCommandCenter.sendBroadcastMessage(sendMessageItem.message.toBytes(), responseListener, errorListener);
+        }
     }
 
     private void sendMessage(final SendMessageItem sendMessageItem)
