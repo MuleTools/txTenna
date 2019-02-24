@@ -170,7 +170,7 @@ public class BroadcastLogsAdapter extends RecyclerView.Adapter<BroadcastLogsAdap
 
                 String url = null;
                 if(entry.net.equalsIgnoreCase("t"))    {
-                    url = "https://testnet.smartbit.com.au/tx/";
+                    url = "https://blockstream.info/testnet/tx/";
                 }
                 else    {
                     url = "https://m.oxt.me/transaction/";
@@ -186,7 +186,7 @@ public class BroadcastLogsAdapter extends RecyclerView.Adapter<BroadcastLogsAdap
 
                 String url = null;
                 if(entry.net.equalsIgnoreCase("t"))    {
-                    url = "https://testnet.smartbit.com.au/tx/" + entry.hash;
+                    url = "https://blockstream.info/testnet/tx/" + entry.hash;
                 }
                 else    {
                     url = "https://m.oxt.me/transaction/" + entry.hash;
