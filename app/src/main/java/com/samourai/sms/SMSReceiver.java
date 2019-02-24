@@ -34,6 +34,10 @@ public class SMSReceiver extends BroadcastReceiver {
 
     private static TransactionHandler transactionHandler = null;
 
+    public SMSReceiver() {
+        ;
+    }
+
     public SMSReceiver(TransactionHandler transactionHandler) {
         this.transactionHandler = transactionHandler;
     }
