@@ -65,7 +65,7 @@
 
     <string name="relayed_to_mesh">Relayée via réseau GoTenna Mesh</string>
     <string name="relayed_to_sms">Relayée via SMS</string>
-    <string name="broadcast_to_bitcoin">Émettre vers réseau bitcoin</string>
+    <string name="broadcast_to_bitcoin">Émettre vers réseau Bitcoin</string>
     <string name="received_via_mesh">Reçue via réseau GoTenna Mesh</string>
     <string name="received_via_sms">Reçue via SMS</string>
 
@@ -80,5 +80,15 @@
     <string name="mesh_device_detected2">Connecté à GoTenna Mesh</string>
 
     <string name="sure_clear_logs">Êtes-vous sûr de vouloir supprimer les contenus du journal émis?</string>
+    
+    <string name="mesh_device_disconnecting">Déconnexion en cours</string>
+    <string name="mesh_device_scanning">Scan en cours</string>
+    
+    <string name="invalid_token">Votre token SDK est invalide. Veuillez obtenir un token valide de goTenna.</string>
+    
+    <string name="scanning_please_wait">Scan en cours pour appareil GoTenna Mesh. Veuillez patienter.</string>
+
+    <string name="confirmed_via_bitcoin">Confirmée sur réseau Bitcoin</string>
+
 
 </resources>
