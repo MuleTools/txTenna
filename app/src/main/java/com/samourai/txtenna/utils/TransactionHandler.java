@@ -11,6 +11,7 @@ import org.apache.commons.io.IOUtils;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.net.UnknownHostException;
 
 import ch.boye.httpclientandroidlib.HttpResponse;
 import ch.boye.httpclientandroidlib.client.HttpClient;
@@ -226,6 +227,9 @@ public class TransactionHandler extends HandlerThread {
                     if (isChanged) {
                         refresh();
                     }
+                }
+                catch(UnknownHostException e) {
+                    Log.d("TransactionHandler", "No Internet Connection. " + e);
                 }
                 catch(IOException e) {
                     Log.d("TransactionHandler", e.getMessage());
