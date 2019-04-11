@@ -35,6 +35,7 @@ import java.util.UUID;
 public class SettingsActivity extends PreferenceActivity {
 
     private static final String regex_url = "^(https?)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]";
+    private static final String regex_token = "[a-zA-Z0-9]{64}";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -130,6 +131,22 @@ public class SettingsActivity extends PreferenceActivity {
 
                 doRegion();
 
+                return true;
+            }
+        });
+
+        final EditTextPreference tokenPref = (EditTextPreference) findPreference("token");
+        tokenPref.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+            public boolean onPreferenceChange(Preference preference, Object newValue) {
+                String token = newValue.toString();
+                if (token != null && token.length() > 0) {
+                    if (token.matches(regex_token)) {
+                        PrefsUtil.getInstance(SettingsActivity.this).setValue(PrefsUtil.GOTENNA_TOKEN, token);
+                    }
+                    else {
+                        Toast.makeText(SettingsActivity.this, R.string.invalid_token, Toast.LENGTH_SHORT).show();
+                    }
+                }
                 return true;
             }
         });

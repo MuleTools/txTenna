@@ -42,16 +42,31 @@
         android:key="region"
         />
 
-    <Preference
-        android:title="@string/options_clearlogs"
-        android:summary="@string/options_clearlogs2"
-        android:key="clearlogs"
-        />
+    <EditTextPreference
+        android:title="@string/options_token"
+        android:summary="@string/options_token2"
+        android:inputType="textLongMessage"
+        android:lines="10"
+        android:key="token"
+        android:gravity="top|left"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:scrollbars="vertical"
+        android:textIsSelectable="true"
+    />
+    <!-- android:maxLength="1000" -->
 
-    <Preference
-        android:title="@string/about_us"
-        android:summary="@string/about_us"
-        android:key="about"
-        />
+
+<Preference
+    android:title="@string/options_clearlogs"
+    android:summary="@string/options_clearlogs2"
+    android:key="clearlogs"
+    />
+
+<Preference
+    android:title="@string/about_us"
+    android:summary="@string/about_us"
+    android:key="about"
+    />
 
 </PreferenceScreen>

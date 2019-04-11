@@ -31,6 +31,8 @@
     <string name="options_z85_2">Économiser de l\'espace en encodant les octets de transaction en Z85</string>
     <string name="options_region">Région géographique</string>
     <string name="options_region2">Sélectionner la région géographique où se situe votre GoTenna.</string>
+    <string name="options_token">goTenna Jeton</string>
+    <string name="options_token2">Entrez votre jeton personnel goTenna ou laissez le champ vide pour le jeton par défaut.</string>
     <string name="options_clearlogs">Supprimer contenus journal</string>
     <string name="options_clearlogs2">Supprimer contenus journal émis.</string>
     <string name="use_intl_format">Utiliser le format d\'appel international. Ex.:\'+447385555555\'</string>
@@ -39,6 +41,8 @@
     <string name="default_pushtx_testnet">https://api.samouraiwallet.com/test/v2/pushtx/</string>
     <string name="default_txtenna">https://api.samouraiwallet.com/v2/txtenna/segments</string>
     <string name="invalid_url">URL invalide</string>
+    <string name="invalid_token_title">Votre jeton SDK n\'est pas valide.</string>
+    <string name="invalid_token">Veuillez obtenir un jeton valide auprès de goTenna.</string>
 
     <string name="muletools">MuleTools</string>
     <string name="menu_scan_qr">Scanner QR</string>

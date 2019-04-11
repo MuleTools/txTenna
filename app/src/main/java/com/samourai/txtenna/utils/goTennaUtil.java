@@ -23,6 +23,7 @@ import com.gotenna.sdk.user.UserDataStore;
 import com.samourai.txtenna.NetworkingActivity;
 import com.gotenna.sdk.bluetooth.GTConnectionManager.GTDeviceType;
 import com.gotenna.sdk.bluetooth.GTConnectionManager.GTConnectionListener;
+import com.samourai.txtenna.prefs.PrefsUtil;
 
 import java.security.SecureRandom;
 import java.util.UUID;
@@ -57,26 +58,39 @@ public class goTennaUtil implements GTConnectionListener {
         return instance;
     }
 
+    public static boolean tokenIsVerified() {
+        goTennaUtil gt = getInstance(null);
+        return (gt != null && gt.getGtConnectionManager() != null && GoTenna.tokenIsVerified());
+    }
+
     public String getAppToken() {
-        return GOTENNA_APP_TOKEN;
+        String token = PrefsUtil.getInstance(context.getApplicationContext()).getValue(PrefsUtil.GOTENNA_TOKEN, "");
+        if (token == "") {
+            return GOTENNA_APP_TOKEN;
+        }
+        return token;
     }
 
     public boolean isPaired()  {
 
-        if(getGtConnectionManager().getGtConnectionState() == GTConnectionState.CONNECTED) {
+        if(tokenIsVerified() && getGtConnectionManager().getGtConnectionState() == GTConnectionState.CONNECTED) {
             return true;
         }
         return false;
     }
 
     public String GetHardwareAddress() {
-        return getGtConnectionManager().getConnectedGotennaAddress();
+        if (tokenIsVerified()) {
+            return getGtConnectionManager().getConnectedGotennaAddress();
+        }
+        else {
+            return "";
+        }
     }
 
     public void init() throws StringIndexOutOfBoundsException, GTInvalidAppTokenException {
-
         GoTenna.setApplicationToken(context.getApplicationContext(), goTennaUtil.getInstance(context).getAppToken());
-        if(GoTenna.tokenIsVerified())    {
+        if (GoTenna.tokenIsVerified()) {
             gtConnectionManager = GTConnectionManager.getInstance();
             Log.d("goTennaUtil", "goTenna token is verified:" + GoTenna.tokenIsVerified());
             Log.d("goTennaUtil", "connected address:" + gtConnectionManager.getConnectedGotennaAddress());
@@ -84,8 +98,8 @@ public class goTennaUtil implements GTConnectionListener {
 
         handler = new Handler(Looper.getMainLooper()) {
             @Override
-            public void handleMessage(Message msg){
-                if(msg.what == 0 && callbackActivity != null) {
+            public void handleMessage(Message msg) {
+                if (msg.what == 0 && callbackActivity != null) {
                     // no connection, scanning timed out
                     callbackActivity.setStatusText(false, false);
                 }
@@ -158,16 +172,18 @@ public class goTennaUtil implements GTConnectionListener {
     }
 
     public static void setGID(long gid) {
-        GTCommandCenter.getInstance().setGoTennaGID(gid, UUID.randomUUID().toString(), new GTErrorListener() {
-            @Override
-            public void onError(GTError error) {
-                User gtUser = UserDataStore.getInstance().getCurrentUser();
-                Log.d("goTennaUtil", error.toString() + "," + error.getCode() + " gid: " + gtUser.getGID());
-            }
-        });
+        if (tokenIsVerified()) {
+            GTCommandCenter.getInstance().setGoTennaGID(gid, UUID.randomUUID().toString(), new GTErrorListener() {
+                @Override
+                public void onError(GTError error) {
+                    User gtUser = UserDataStore.getInstance().getCurrentUser();
+                    Log.d("goTennaUtil", error.toString() + "," + error.getCode() + " gid: " + gtUser.getGID());
+                }
+            });
 
-        User gtUser = UserDataStore.getInstance().getCurrentUser();
-        Log.d("goTennaUtil", "gtUser.getGID: " + gtUser.getGID());
+            User gtUser = UserDataStore.getInstance().getCurrentUser();
+            Log.d("goTennaUtil", "gtUser.getGID: " + gtUser.getGID());
+        }
     }
 
     public static long getGID() {
@@ -185,15 +201,17 @@ public class goTennaUtil implements GTConnectionListener {
         long gid = abs(new SecureRandom().nextLong()) % 9999999999L;
         setGID(gid);
 
-        callbackActivity = activity;
-        regionIndex = region;
-        gtConnectionManager.addGtConnectionListener(this);
-        gtConnectionManager.scanAndConnect(GTDeviceType.MESH);
-        handler.postDelayed(scanTimeoutRunnable, SCAN_TIMEOUT);
+        if (tokenIsVerified()) {
+            callbackActivity = activity;
+            regionIndex = region;
+            gtConnectionManager.addGtConnectionListener(this);
+            gtConnectionManager.scanAndConnect(GTDeviceType.MESH);
+            handler.postDelayed(scanTimeoutRunnable, SCAN_TIMEOUT);
+        }
     }
 
     public void sendEchoCommand() {
-        if(GTConnectionManager.getInstance().isConnected())
+        if(tokenIsVerified() && GTConnectionManager.getInstance().isConnected())
         {
             GTCommandCenter.getInstance().sendEchoCommand(null, null);
         }
