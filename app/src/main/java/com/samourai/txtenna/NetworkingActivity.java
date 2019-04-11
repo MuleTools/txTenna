@@ -43,6 +43,7 @@ public class NetworkingActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_networking);
         ConstraintGroup = findViewById(R.id.mesh_card_group);
         mesh_card_detail = findViewById(R.id.mesh_card_detail);
@@ -76,7 +77,7 @@ public class NetworkingActivity extends AppCompatActivity {
         btPair.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-            if(GoTenna.tokenIsVerified()) {
+            if(goTennaUtil.tokenIsVerified()) {
                 if (!hasBluetoothPermisson()) {
                     requestBluetoothPermission();
                 }
@@ -123,12 +124,14 @@ public class NetworkingActivity extends AppCompatActivity {
             }
         });
 
-        Log.d("NetworkActivity", "gtConnectionState:" + goTennaUtil.getInstance(NetworkingActivity.this).getGtConnectionManager().getGtConnectionState());
-        Log.d("NetworkActivity", "connected address:" + goTennaUtil.getInstance(NetworkingActivity.this).getGtConnectionManager().getConnectedGotennaAddress());
+        if (goTennaUtil.tokenIsVerified()) {
+            Log.d("NetworkActivity", "gtConnectionState:" + goTennaUtil.getInstance(NetworkingActivity.this).getGtConnectionManager().getGtConnectionState());
+            Log.d("NetworkActivity", "connected address:" + goTennaUtil.getInstance(NetworkingActivity.this).getGtConnectionManager().getConnectedGotennaAddress());
+        }
     }
 
     public void setStatusText(boolean isPaired, boolean isScanning) {
-        String deviceName = goTennaUtil.getInstance(NetworkingActivity.this).getGtConnectionManager().getConnectedGotennaAddress();
+        String deviceName = goTennaUtil.tokenIsVerified() ? goTennaUtil.getInstance(NetworkingActivity.this).getGtConnectionManager().getConnectedGotennaAddress() : null;
         int pairText = R.string.scan;
         if(isPaired && deviceName != null)    {
             mesh_card_detail.setText(getText(R.string.mesh_device_detected) + ": " + deviceName);
