@@ -29,13 +29,13 @@ public class TransactionHandler extends HandlerThread {
     public TransactionHandler(String name, BroadcastLogsAdapter adapter) {
         super(name);
         this.adapter = adapter;
+        Log.d("TransactionHandler", "create object: " + Integer.toHexString(this.hashCode()) + " [lifecycle]");
     }
 
     public synchronized void refresh() {
         try {
             android.os.Message message = new android.os.Message();
             message.arg1 = 0;
-            waitUntilReady();
             this.handler.sendMessage(message);
         }
         catch (Exception e) {
@@ -48,7 +48,6 @@ public class TransactionHandler extends HandlerThread {
             android.os.Message message = new android.os.Message();
             message.arg1 = 1;
             message.obj = segment;
-            waitUntilReady();
             this.handler.sendMessage(message);
         }
         catch (Exception e) {
@@ -83,7 +82,7 @@ public class TransactionHandler extends HandlerThread {
                                 if (pos > -1) {
                                     BroadcastLogUtil.BroadcastLogEntry entry = BroadcastLogUtil.getInstance().getBroadcastLog().get(pos);
                                     entry.broadcast = true;
-                                    if (blockHeight > 1) {
+                                    if (blockHeight >= 1) {
                                         entry.confirmed = true;
                                     }
                                     adapter.notifyDataSetChanged();
@@ -102,10 +101,10 @@ public class TransactionHandler extends HandlerThread {
         notify();
     }
 
-    public synchronized void waitUntilReady() throws InterruptedException {
-        while (this.handler == null) {
-            wait();
-        }
+    @Override
+    protected void finalize () throws Throwable {
+        super.finalize();
+        Log.d("TransactionHandler", "finalize object: @" + Integer.toHexString(this.hashCode()) + " [lifecycle]");
     }
 
     Runnable transactionChecker = new Runnable() {
@@ -123,7 +122,6 @@ public class TransactionHandler extends HandlerThread {
 
     public void startTransactionChecker() {
         try {
-            waitUntilReady();
             transactionChecker.run();
         }
         catch (Exception e) {
@@ -133,7 +131,6 @@ public class TransactionHandler extends HandlerThread {
 
     public void stopTransactionChecker() {
         try {
-            waitUntilReady();
             this.handler.removeCallbacks(transactionChecker);
         }
         catch (Exception e) {
