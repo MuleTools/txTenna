@@ -10,8 +10,11 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
+
+import static java.lang.StrictMath.abs;
 
 public class BroadcastLogUtil {
 
@@ -151,5 +154,20 @@ public class BroadcastLogUtil {
             index++;
         }
         return -1;
+    }
+
+    // return GID from last unconfirmed broadcast transaction, otherwise a new random GID
+    public long lastGID() {
+
+        // set new random GID every time we connect to a goTenna device
+        long gid = abs(new SecureRandom().nextLong()) % 9999999999L;
+
+        for (BroadcastLogEntry entry : broadcastLog) {
+            // use gid from last unconfirmed transaction
+            if (entry.confirmed == false) {
+                gid = entry.gid;
+            }
+        }
+        return gid;
     }
 }
