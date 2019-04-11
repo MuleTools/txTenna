@@ -74,7 +74,13 @@ public class IncomingMessagesManager implements GTCommandCenter.GTMessageListene
             if (incomingMessageListener != null)
             {
                 incomingMessageListeners.remove(incomingMessageListener);
+                if (incomingMessageListeners.size() > 0) {
+                    Log.d("IncomingMessagesManager", "addIncomingMessageListener, NOT empty " + Integer.toHexString(this.hashCode()) + " [lifecycle]");
+                }
                 incomingMessageListeners.add(incomingMessageListener);
+            }
+            else {
+                Log.d("IncomingMessagesManager", "addIncomingMessageListener, incomingMessageListener == null  " + Integer.toHexString(this.hashCode()) + " [lifecycle]");
             }
         }
     }
@@ -86,6 +92,12 @@ public class IncomingMessagesManager implements GTCommandCenter.GTMessageListene
             if (incomingMessageListener != null)
             {
                 incomingMessageListeners.remove(incomingMessageListener);
+            }
+            else {
+                Log.d("IncomingMessagesManager", "removeIncomingMessageListener, incomingMessageListener == null " + Integer.toHexString(this.hashCode()) + " [lifecycle]");
+            }
+            if (incomingMessageListeners.size() > 0) {
+                Log.d("IncomingMessagesManager", "removeIncomingMessageListener, NOT empty " + Integer.toHexString(this.hashCode()) + " [lifecycle]");
             }
         }
     }
