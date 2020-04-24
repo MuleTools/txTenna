@@ -37,7 +37,6 @@ import com.dm.zbar.android.scanner.ZBarConstants;
 import com.dm.zbar.android.scanner.ZBarScannerActivity;
 import com.gotenna.sdk.GoTenna;
 import com.gotenna.sdk.exceptions.GTInvalidAppTokenException;
-import com.samourai.sms.SMSReceiver;
 import com.samourai.txtenna.adapters.BroadcastLogsAdapter;
 import com.samourai.txtenna.payload.PayloadFactory;
 import com.samourai.txtenna.prefs.PrefsUtil;
@@ -68,7 +67,6 @@ public class MainActivity extends AppCompatActivity implements IncomingMessagesM
 
     private final static int SCAN_HEX_TX = 2011;
 
-    private static final int SMS_PERMISSION_CODE = 0;
     private static final int CAMERA_PERMISSION_CODE = 1;
     private Group emptyView;
     private LinearLayout BottomSheetMenu;
@@ -129,27 +127,12 @@ public class MainActivity extends AppCompatActivity implements IncomingMessagesM
             }
         });
 
-        smsSelection = BottomSheetMenu.findViewById(R.id.sms);
-        smsSelection.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                relayViaGoTenna = false;
-                bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
-                doGetHex();
-            }
-        });
-
-
         if (!hasCameraPermission()) {
             showRequestCameraPermissionInfoAlertDialog();
         }
 
         if (!hasCameraPermission()) {
             showRequestCameraPermissionInfoAlertDialog();
-        }
-
-        if (!hasReadSmsPermission() || !hasSendSmsPermission()) {
-            showRequestSMSPermissionInfoAlertDialog();
         }
 
         try {
@@ -217,32 +200,14 @@ public class MainActivity extends AppCompatActivity implements IncomingMessagesM
         protected void onResume() {
             super.onResume();
 
-            if(isReceiver == null)    {
-                isFilter = new IntentFilter();
-                isFilter.addAction("android.provider.Telephony.SMS_RECEIVED");
-                isFilter.setPriority(2147483647);
-                isReceiver = new SMSReceiver(transactionHandler);
-                MainActivity.this.registerReceiver(isReceiver, isFilter);
-            }
-            refreshData();
-            transactionHandler.startTransactionChecker();
-            IncomingMessagesManager.getInstance(MainActivity.this.getApplicationContext()).addIncomingMessageListener(this);
-        }
+        refreshData();
+        transactionHandler.startTransactionChecker();
+        IncomingMessagesManager.getInstance(MainActivity.this.getApplicationContext()).addIncomingMessageListener(this);
+    }
 
         @Override
         protected void onPause() {
             super.onPause();
-
-            try {
-                if(isReceiver != null)    {
-                    MainActivity.this.unregisterReceiver(isReceiver);
-                    IncomingMessagesManager.getInstance(MainActivity.this.getApplicationContext()).removeIncomingMessageListener(this);
-                    transactionHandler.stopTransactionChecker();
-                }
-            }
-            catch(IllegalArgumentException iae) {
-                ;
-            }
         }
 
         @Override
@@ -450,54 +415,11 @@ public class MainActivity extends AppCompatActivity implements IncomingMessagesM
 
         }
 
-        private void showRequestSMSPermissionInfoAlertDialog() {
+    private boolean hasCameraPermission() {
+        return ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED;
+    }
 
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle(R.string.permission_sms_alert_dialog_title);
-            builder.setMessage(R.string.permission_sms_dialog_message);
-            builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    dialog.dismiss();
-                    requestSmsPermission();
-                }
-            });
-            builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    dialog.dismiss();
-                }
-            });
-
-            builder.show();
-
-        }
-
-        private boolean hasCameraPermission() {
-            return ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED;
-        }
-
-        private boolean hasReadSmsPermission() {
-            return ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.READ_SMS) == PackageManager.PERMISSION_GRANTED;
-        }
-
-        private boolean hasSendSmsPermission() {
-            return ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED;
-        }
-
-        private void requestSmsPermission() {
-
-            if (ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this, Manifest.permission.SEND_SMS) &&
-                    ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this, Manifest.permission.READ_SMS)) {
-                Log.d("MainActivity", "shouldShowRequestPermissionRationale(), no permission requested");
-                return;
-            }
-
-            ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.SEND_SMS, Manifest.permission.READ_SMS}, SMS_PERMISSION_CODE);
-
-        }
-
-        private void requestCameraPermission() {
+    private void requestCameraPermission() {
 
             if (ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this, Manifest.permission.CAMERA)
                     ) {
@@ -523,7 +445,6 @@ public class MainActivity extends AppCompatActivity implements IncomingMessagesM
             String msg = null;
             try {
                 tx = new Transaction(PrefsUtil.getInstance(MainActivity.this).getValue(PrefsUtil.USE_MAINNET, true) == true ? MainNetParams.get() : TestNet3Params.get(), Hex.decode(hexTx));
-                msg = MainActivity.this.getString(R.string.broadcast) + ":" + tx.getHashAsString() + " " + getText(R.string.to) + " " + PrefsUtil.getInstance(MainActivity.this).getValue(PrefsUtil.SMS_RELAY, MainActivity.this.getText(R.string.default_relay).toString()) + " ?";
                 Log.d("MainActivity", "hash:" + tx.getHashAsString());
                 tx.verify();
             }
@@ -577,27 +498,17 @@ public class MainActivity extends AppCompatActivity implements IncomingMessagesM
 
                     }
 
-                });
-                dlg.setNeutralButton(R.string.cancel, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int whichButton) {
+            });
+            dlg.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int whichButton) {
 
                         dialog.dismiss();
                         relayViaGoTenna = null;
 
-                    }
+                }
 
-                });
-                dlg.setNegativeButton(R.string.sms_broadcast, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int whichButton) {
-
-                        dialog.dismiss();
-
-                        List<String> payload  = PayloadFactory.toJSON(hexTx, false, params);
-                        PayloadFactory.getInstance(MainActivity.this, transactionHandler).relayPayload(payload, false);
-                        relayViaGoTenna = null;
-                    }
-                });
-            }
+            });
+       }
 
             dlg.show();
         }

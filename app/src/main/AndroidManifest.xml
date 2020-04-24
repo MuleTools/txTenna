@@ -4,15 +4,11 @@
     package="com.samourai.txtenna">
 
     <uses-permission android:name="android.permission.CAMERA" />
-    <uses-permission android:name="android.permission.SEND_SMS" />
-    <uses-permission android:name="android.permission.READ_SMS" />
-    <uses-permission android:name="android.permission.RECEIVE_SMS" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
-    <uses-feature android:name="android.hardware.telephony" android:required="false" tools:node="replace"/>
     <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" tools:node="replace"/>
 
     <application
@@ -54,13 +50,6 @@
             android:screenOrientation="landscape"
             android:configChanges="keyboardHidden|orientation|screenSize"
             />
-
-        <receiver android:name="com.samourai.sms.SMSReceiver" android:enabled="true" android:exported="true">
-            <intent-filter android:priority="999">
-                <action android:name="android.provider.Telephony.SMS_RECEIVED" />
-                <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
-        </receiver>
 
     </application>
 
