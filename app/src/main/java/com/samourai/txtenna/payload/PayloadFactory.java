@@ -10,7 +10,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import com.gotenna.sdk.gids.GIDManager;
-import com.samourai.sms.SMSSender;
 import com.samourai.txtenna.utils.Message;
 import com.samourai.txtenna.R;
 import com.samourai.txtenna.utils.SendMessageInteractor;
@@ -364,14 +363,6 @@ public class PayloadFactory {
                                 });
 
                         Log.d("PayloadFactory", "goTenna relayed: " + s + " gid: " + gid);
-                    }
-                    else    {
-                        SMSSender.getInstance(context).send(s, PrefsUtil.getInstance(context).getValue(PrefsUtil.SMS_RELAY, context.getString(R.string.default_relay)));
-                        Log.d("PayloadFactory", "sms relayed:" + s);
-
-                        // add messages that were relayed over the SMS network to the broadcast log
-                        BroadcastLogUtil.getInstance().add(payload.get(0), true, true, false, 0);
-                        transactionHandler.refresh();
                     }
 
                     handler.post(new Runnable() {
